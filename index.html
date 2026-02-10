@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CRM Comexsa</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="app-header reveal" style="--delay: 0ms;">
+        <div>
+          <p class="eyebrow">CRM Comexsa</p>
+          <h1>Panel Comercial</h1>
+          <p class="subtitle">
+            Flujo comercial base con autoguardado local y control total de prospectos.
+          </p>
+        </div>
+        <div class="header-actions">
+          <button class="btn" id="saveNow" type="button">Guardar ahora</button>
+          <button class="btn ghost" id="openClients" type="button">Clientes</button>
+          <button class="backoffice-link" id="openBackOffice" type="button" title="Back office" aria-label="Back office"></button>
+          <div class="save-indicator">
+            <span id="saveStatus">Autoguardado activo</span>
+            <small id="saveTime">Sin cambios pendientes</small>
+          </div>
+        </div>
+      </header>
+
+      <div class="metrics-total reveal" style="--delay: 60ms;">
+        <div class="eyebrow">Total Empresas</div>
+        <div class="metrics-total-value" id="metricTotalImpacto">0</div>
+      </div>
+
+      <section class="metrics reveal" style="--delay: 80ms;">
+        <div class="metric-card">
+          <h3>Prospecto</h3>
+          <p class="metric">
+            <span class="metric-value" id="metric-prospecto">0</span>
+            <span class="metric-percent" id="metric-percent-prospecto">0%</span>
+          </p>
+        </div>
+        <div class="metric-card">
+          <h3>Acción Comercial</h3>
+          <p class="metric">
+            <span class="metric-value" id="metric-primeros-contactos">0</span>
+            <span class="metric-percent" id="metric-percent-primeros-contactos">0%</span>
+          </p>
+        </div>
+        <div class="metric-card">
+          <h3>Envío de Muestras</h3>
+          <p class="metric">
+            <span class="metric-value" id="metric-envio-muestras">0</span>
+            <span class="metric-percent" id="metric-percent-envio-muestras">0%</span>
+          </p>
+        </div>
+        <div class="metric-card">
+          <h3>Pedido</h3>
+          <p class="metric">
+            <span class="metric-value" id="metric-pedido">0</span>
+            <span class="metric-percent" id="metric-percent-pedido">0%</span>
+          </p>
+        </div>
+        <div class="metric-card">
+          <h3>Cliente</h3>
+          <p class="metric">
+            <span class="metric-value" id="metric-cliente">0</span>
+            <span class="metric-percent" id="metric-percent-cliente">0%</span>
+          </p>
+        </div>
+      </section>
+
+      <section class="grid reveal" style="--delay: 160ms;">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Nuevo prospecto</h2>
+            <p>Registra prospectos para iniciar el flujo comercial.</p>
+          </div>
+          <form id="opportunityForm" class="form-grid" autocomplete="off">
+            <label>
+              Comercial responsable
+              <select name="comercialId" required></select>
+            </label>
+            <label>
+              Empresa
+              <input name="empresa" type="text" placeholder="Comexsa Logística" required />
+            </label>
+            <label>
+              Contacto
+              <input name="contacto" type="text" placeholder="Nombre y apellido" required />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" placeholder="correo@empresa.es" />
+            </label>
+            <label>
+              Teléfono
+              <input name="telefono" type="tel" placeholder="+34 600 000 000" />
+            </label>
+            <label class="full">
+              Notas
+              <textarea name="notas" rows="3" placeholder="Contexto clave del prospecto"></textarea>
+            </label>
+            <button class="btn full" type="submit">Agregar prospecto</button>
+          </form>
+        </section>
+      </section>
+
+      <section class="pipeline reveal" style="--delay: 240ms;">
+        <div class="panel-header">
+          <h2>Pipeline comercial</h2>
+          <p>Visualiza y mueve prospectos entre etapas. Haz clic en un prospecto para abrir su ficha.</p>
+        </div>
+        <div class="pipeline-columns" id="pipelineColumns"></div>
+      </section>
+
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

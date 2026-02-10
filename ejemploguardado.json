@@ -1,0 +1,110 @@
+{
+  "opportunities": [
+    {
+      "id": "opp-f0dff04f-4844-4d8d-a4da-93e7d2c385b2",
+      "comercialId": "sales-f407270b-bcaf-4401-8b24-c2eb1231e9d7",
+      "empresa": "Carniceria Frutós",
+      "contacto": "Jaume Frutós",
+      "email": "es@es.es",
+      "telefono": "659598684",
+      "monto": 250,
+      "etapa": "prospecto",
+      "prioridad": "media",
+      "proximaAccion": "",
+      "fechaCierre": "",
+      "notas": "",
+      "acciones": [
+        {
+          "id": "acc-1a110e29-7666-4a67-b1fa-b952fe0f8bad",
+          "tipo": "llamada",
+          "fecha": "2026-02-10",
+          "responsable": "pat",
+          "notas": "probando notas",
+          "done": false
+        }
+      ],
+      "createdAt": "2026-02-10T18:23:39.442Z",
+      "updatedAt": "2026-02-10T18:24:31.084Z"
+    },
+    {
+      "id": "opp-842172d5-05d1-4d62-baf3-5957e5011737",
+      "comercialId": "sales-f407270b-bcaf-4401-8b24-c2eb1231e9d7",
+      "empresa": "Pepejeans",
+      "contacto": "pepe perez",
+      "email": "pepe@pepe.com",
+      "telefono": "656565656",
+      "monto": 250,
+      "etapa": "primeros-contactos",
+      "prioridad": "alta",
+      "proximaAccion": "llamar para",
+      "fechaCierre": "2026-02-10",
+      "notas": "",
+      "createdAt": "2026-02-10T18:09:02.391Z",
+      "updatedAt": "2026-02-10T18:28:16.878Z",
+      "acciones": []
+    },
+    {
+      "id": "opp-001",
+      "empresa": "Comexsa Logística",
+      "contacto": "Laura Gómez",
+      "email": "laura@comexsa.mx",
+      "telefono": "+52 55 1234 5678",
+      "monto": 85000,
+      "etapa": "envio-muestras",
+      "prioridad": "alta",
+      "proximaAccion": "Presentar propuesta inicial",
+      "fechaCierre": "2026-03-05",
+      "notas": "Interesados en solución integral de comercio exterior.",
+      "createdAt": "2026-02-10T16:00:00.000Z",
+      "updatedAt": "2026-02-10T18:28:19.343Z",
+      "comercialId": "",
+      "acciones": []
+    },
+    {
+      "id": "opp-002",
+      "empresa": "Delta Aduanas",
+      "contacto": "Marco Ruiz",
+      "email": "mruiz@deltaaduanas.com",
+      "telefono": "+52 33 2222 3333",
+      "monto": 42000,
+      "etapa": "pedido",
+      "prioridad": "media",
+      "proximaAccion": "Revisar términos de servicio",
+      "fechaCierre": "2026-02-28",
+      "notas": "Requieren ajuste en tarifas por volumen.",
+      "createdAt": "2026-02-09T20:00:00.000Z",
+      "updatedAt": "2026-02-10T18:28:21.031Z",
+      "comercialId": "",
+      "acciones": []
+    },
+    {
+      "id": "opp-003",
+      "empresa": "Nordic Trading",
+      "contacto": "Elena Suárez",
+      "email": "elena@nordictrading.com",
+      "telefono": "+52 81 5555 0000",
+      "monto": 120000,
+      "etapa": "cliente",
+      "prioridad": "alta",
+      "proximaAccion": "Cierre con dirección",
+      "fechaCierre": "2026-03-12",
+      "notas": "Negociación avanzada, falta aprobación final.",
+      "createdAt": "2026-02-08T14:00:00.000Z",
+      "updatedAt": "2026-02-10T18:28:21.943Z",
+      "comercialId": "",
+      "acciones": []
+    }
+  ],
+  "activities": [],
+  "salespeople": [
+    {
+      "id": "sales-f407270b-bcaf-4401-8b24-c2eb1231e9d7",
+      "nombre": "Pat",
+      "telefono": "644711790",
+      "email": "pat@pat.es",
+      "notas": "Castellón",
+      "createdAt": "2026-02-10T18:08:08.762Z",
+      "updatedAt": "2026-02-10T18:08:08.762Z"
+    }
+  ]
+}

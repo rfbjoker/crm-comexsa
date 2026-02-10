@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Back office · CRM Comexsa</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="backoffice-page">
+      <header class="backoffice-header reveal" style="--delay: 0ms;">
+        <div>
+          <p class="eyebrow">CRM Comexsa</p>
+          <h1>Back office</h1>
+          <p class="subtitle">Acceso restringido para configuración interna.</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn ghost" id="backToFront" type="button">Ir al panel</button>
+        </div>
+      </header>
+
+      <section class="panel reveal" style="--delay: 80ms;">
+        <div class="panel-header">
+          <h2>Acceso</h2>
+          <p>Introduce la clave para administrar comerciales y datos.</p>
+        </div>
+        <form id="backOfficeForm" class="form-grid" autocomplete="off">
+          <label>
+            Contraseña
+            <input name="password" type="password" placeholder="Clave de acceso" required />
+          </label>
+          <div class="detail-actions full">
+            <button class="btn" id="backOfficeUnlock" type="submit">Entrar</button>
+            <button class="btn ghost" id="backOfficeLock" type="button" hidden>Salir</button>
+          </div>
+        </form>
+        <div class="backoffice-status" id="backOfficeStatus">Back office bloqueado</div>
+      </section>
+
+      <section class="grid reveal" style="--delay: 160ms;" id="backOfficeContent" hidden>
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Comerciales</h2>
+            <p>Gestiona el equipo comercial responsable del pipeline.</p>
+          </div>
+          <form id="salesForm" class="form-grid" autocomplete="off">
+            <label>
+              Nombre
+              <input name="nombre" type="text" placeholder="Ej. Ana Pérez" required />
+            </label>
+            <label>
+              Teléfono
+              <input name="telefono" type="tel" placeholder="+34 600 000 000" />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" placeholder="ana@comexsa.es" />
+            </label>
+            <label class="full">
+              Notas
+              <textarea name="notas" rows="2" placeholder="Zona, especialidad, etc."></textarea>
+            </label>
+            <div class="detail-actions full">
+              <button class="btn" id="salesSubmit" type="submit">Agregar comercial</button>
+              <button class="btn ghost" id="salesCancel" type="button" hidden>Cancelar edición</button>
+            </div>
+          </form>
+          <div id="salesList" class="sales-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Herramientas de datos</h2>
+            <p>Importa, exporta o restablece información.</p>
+          </div>
+          <div class="form-grid">
+            <button class="btn" id="exportData" type="button">Exportar</button>
+            <label class="btn ghost" for="importFile">
+              Importar
+              <input id="importFile" type="file" accept="application/json" />
+            </label>
+            <button class="btn ghost" id="resetDemo" type="button">Restablecer demo</button>
+          </div>
+        </section>
+      </section>
+    </div>
+
+    <script src="backoffice.js"></script>
+  </body>
+</html>
