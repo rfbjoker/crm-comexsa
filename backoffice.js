@@ -266,14 +266,16 @@ importFile.addEventListener("change", (event) => {
   const reader = new FileReader();
   reader.onload = () => {
     try {
-      const parsed = JSON.parse(reader.result);
-      if (!parsed || typeof parsed !== "object") {
+      const parsed = safeParseJson(reader.result);
+      const payload = parsed?.state ?? parsed?.data ?? parsed;
+      if (!payload || typeof payload !== "object") {
         throw new Error("Formato inválido");
       }
-      state = normalizeState(parsed);
+      state = normalizeState(payload);
       resetSalesForm();
       saveState();
       renderSalesList();
+      backOfficeStatus.textContent = "Datos importados correctamente";
     } catch (error) {
       alert("No se pudo importar el archivo. Verifica el formato.");
     }
@@ -402,7 +404,15 @@ function normalizeState(input) {
         ...opp,
         comercialId: opp.comercialId || "",
         etapa: normalizeStage(opp.etapa),
-        acciones: Array.isArray(opp.acciones) ? opp.acciones : []
+        acciones: Array.isArray(opp.acciones)
+          ? opp.acciones.map((action) => ({
+              ...action,
+              tipo: normalizeActionType(action.tipo)
+            }))
+          : [],
+        productos: Array.isArray(opp.productos) ? opp.productos : [],
+        poblacion: opp.poblacion || "",
+        provincia: opp.provincia || ""
       }))
     : [];
   const activities = Array.isArray(input.activities) ? input.activities : [];
@@ -419,6 +429,21 @@ function normalizeStage(stage) {
     cierre: "cliente"
   };
   return map[stage] || stage;
+}
+
+function normalizeActionType(type) {
+  if (!type) return "llamada";
+  const map = {
+    email: "mail",
+    reunion: "visita",
+    seguimiento: "whatsapp"
+  };
+  return map[type] || type;
+}
+
+function safeParseJson(raw) {
+  const text = String(raw || "").replace(/^\uFEFF/, "");
+  return JSON.parse(text);
 }
 
 function createId(prefix) {

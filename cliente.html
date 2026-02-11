@@ -20,142 +20,185 @@
         </div>
       </header>
 
-      <section class="panel reveal" style="--delay: 80ms;" id="clientPanel" hidden>
-        <div class="panel-header">
-          <h2>Datos del prospecto</h2>
-          <p>Actualiza la información principal del cliente.</p>
-        </div>
-        <form id="clientForm" class="form-grid" autocomplete="off">
-          <label>
-            Comercial responsable
-            <select name="comercialId" required></select>
-          </label>
-          <label>
-            Empresa
-            <input name="empresa" type="text" required />
-          </label>
-          <label>
-            Contacto
-            <input name="contacto" type="text" required />
-          </label>
-          <label>
-            Email
-            <input name="email" type="email" />
-          </label>
-          <label>
-            Teléfono
-            <input name="telefono" type="tel" />
-          </label>
-          <label>
-            Población
-            <input name="poblacion" type="text" />
-          </label>
-          <label>
-            Provincia
-            <input name="provincia" type="text" />
-          </label>
-          <label>
-            Etapa
-            <select name="etapa">
-              <option value="prospecto">Prospecto</option>
-              <option value="primeros-contactos">Acción Comercial</option>
-              <option value="envio-muestras">Envío de Muestras</option>
-              <option value="pedido">Pedido</option>
-              <option value="cliente">Cliente</option>
-            </select>
-          </label>
-          <label class="full">
-            Notas
-            <textarea name="notas" rows="3"></textarea>
-          </label>
-          <div class="detail-actions full">
-            <button class="btn" id="saveClient" type="submit">Guardar cambios</button>
-            <button class="btn ghost" id="deleteClient" type="button">Eliminar prospecto</button>
-          </div>
-        </form>
-        <div class="save-indicator">
-          <span id="clientSaveStatus">Autoguardado activo</span>
-          <small id="clientSaveTime">Sin cambios pendientes</small>
-        </div>
-      </section>
+      <div class="client-layout" id="clientLayout">
+        <div class="client-left">
+          <section class="panel reveal" style="--delay: 80ms;" id="clientPanel" hidden>
+            <div class="panel-header">
+              <h2>Datos del prospecto</h2>
+              <p>Actualiza la información principal del cliente.</p>
+            </div>
+            <form id="clientForm" class="form-grid" autocomplete="off">
+              <label>
+                Comercial responsable
+                <select name="comercialId" required></select>
+              </label>
+              <label>
+                Empresa
+                <input name="empresa" type="text" required />
+              </label>
+              <label>
+                Contacto
+                <input name="contacto" type="text" required />
+              </label>
+              <label>
+                Email
+                <input name="email" type="email" />
+              </label>
+              <label>
+                Teléfono
+                <input name="telefono" type="tel" />
+              </label>
+              <label>
+                Población
+                <input name="poblacion" type="text" />
+              </label>
+              <label>
+                Provincia
+                <input name="provincia" type="text" />
+              </label>
+              <label>
+                Etapa
+                <select name="etapa">
+                  <option value="prospecto">Prospecto</option>
+                  <option value="primeros-contactos">Acción Comercial</option>
+                  <option value="envio-muestras">Envío de Muestras</option>
+                  <option value="pedido">Pedido</option>
+                  <option value="cliente">Cliente</option>
+                </select>
+              </label>
+              <label class="full">
+                Notas
+                <textarea name="notas" rows="3"></textarea>
+              </label>
+              <div class="detail-actions full">
+                <button class="btn" id="saveClient" type="submit">Guardar cambios</button>
+                <button class="btn ghost" id="deleteClient" type="button">Eliminar prospecto</button>
+              </div>
+            </form>
+            <div class="save-indicator">
+              <span id="clientSaveStatus">Autoguardado activo</span>
+              <small id="clientSaveTime">Sin cambios pendientes</small>
+            </div>
+          </section>
 
-      <section class="panel reveal" style="--delay: 160ms;" id="actionPanel" hidden>
-        <div class="panel-header">
-          <h2>Acciones comerciales</h2>
-          <p>Registra cada interacción con este prospecto.</p>
+          <section class="panel reveal" style="--delay: 160ms;" id="actionPanel" hidden>
+            <div class="panel-header">
+              <h2>Acciones comerciales</h2>
+              <p>Registra cada interacción con este prospecto.</p>
+            </div>
+            <form id="actionForm" class="form-grid" autocomplete="off">
+              <label>
+                Tipo
+                <select name="tipo">
+                  <option value="llamada">Llamada</option>
+                  <option value="mail">Mail</option>
+                  <option value="visita">Visita</option>
+                  <option value="whatsapp">Whatsapp</option>
+                </select>
+              </label>
+              <label>
+                Fecha
+                <input name="fecha" type="date" required />
+              </label>
+              <label>
+                Responsable
+                <select name="responsable" required></select>
+              </label>
+              <label class="full">
+                Notas
+                <textarea name="notas" rows="2"></textarea>
+              </label>
+              <div class="detail-actions full">
+                <button class="btn" id="actionSubmit" type="submit">Agregar acción</button>
+                <button class="btn ghost" id="actionCancel" type="button" hidden>Cancelar edición</button>
+              </div>
+            </form>
+            <div id="actionEmpty" class="empty-state" hidden>Sin acciones registradas.</div>
+            <div id="actionList" class="activity-list"></div>
+          </section>
         </div>
-        <form id="actionForm" class="form-grid" autocomplete="off">
-          <label>
-            Tipo
-            <select name="tipo">
-              <option value="llamada">Llamada</option>
-              <option value="mail">Mail</option>
-              <option value="visita">Visita</option>
-              <option value="whatsapp">Whatsapp</option>
-            </select>
-          </label>
-          <label>
-            Fecha
-            <input name="fecha" type="date" required />
-          </label>
-          <label>
-            Responsable
-            <select name="responsable" required></select>
-          </label>
-          <label class="full">
-            Notas
-            <textarea name="notas" rows="2"></textarea>
-          </label>
-          <div class="detail-actions full">
-            <button class="btn" id="actionSubmit" type="submit">Agregar acción</button>
-            <button class="btn ghost" id="actionCancel" type="button" hidden>Cancelar edición</button>
-          </div>
-        </form>
-        <div id="actionEmpty" class="empty-state" hidden>Sin acciones registradas.</div>
-        <div id="actionList" class="activity-list"></div>
-      </section>
 
-      <section class="panel reveal" style="--delay: 240ms;" id="productPanel" hidden>
-        <div class="panel-header">
-          <h2>Productos consumidos</h2>
-          <p>Importa una tabla de Excel con columnas: Productos, Unidades, Precio.</p>
+        <div class="client-right">
+          <section class="panel reveal summary-sticky" style="--delay: 40ms;" id="clientSummary" hidden>
+            <div class="panel-header">
+              <h2>Resumen</h2>
+              <p>Vista rápida del estado del cliente.</p>
+            </div>
+            <div class="summary-grid">
+              <div class="summary-item">
+                <span class="summary-label">Etapa</span>
+                <strong id="summaryStage" class="stage-pill">—</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Comercial</span>
+                <strong id="summaryCommercial">—</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Ubicación</span>
+                <strong id="summaryLocation">—</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Última actualización</span>
+                <strong id="summaryUpdated">—</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Última acción</span>
+                <strong id="summaryLastAction">—</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Acciones</span>
+                <strong id="summaryActions">0</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Productos</span>
+                <strong id="summaryProducts">0</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel reveal" style="--delay: 240ms;" id="productPanel" hidden>
+            <div class="panel-header">
+              <h2>Productos consumidos</h2>
+              <p>Importa una tabla de Excel con columnas: Productos, Unidades, Precio.</p>
+            </div>
+            <div class="form-grid">
+              <label class="full">
+                Importar Excel / CSV
+                <input id="productFile" type="file" accept=".xlsx,.xls,.csv" />
+              </label>
+            </div>
+            <form id="productForm" class="form-grid" autocomplete="off">
+              <label>
+                Producto
+                <input name="producto" type="text" required />
+              </label>
+              <label>
+                Unidades
+                <input name="unidades" type="number" step="0.01" />
+              </label>
+              <label>
+                Precio
+                <input name="precio" type="number" step="0.01" />
+              </label>
+              <button class="btn full" type="submit">Agregar producto</button>
+            </form>
+            <div id="productEmpty" class="empty-state">Sin productos importados.</div>
+            <div class="product-table-wrapper">
+              <table class="product-table" id="productTable" hidden>
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th>Unidades</th>
+                    <th>Precio</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="productTableBody"></tbody>
+              </table>
+            </div>
+          </section>
         </div>
-        <div class="form-grid">
-          <label class="full">
-            Importar Excel / CSV
-            <input id="productFile" type="file" accept=".xlsx,.xls,.csv" />
-          </label>
-        </div>
-        <form id="productForm" class="form-grid" autocomplete="off">
-          <label>
-            Producto
-            <input name="producto" type="text" required />
-          </label>
-          <label>
-            Unidades
-            <input name="unidades" type="number" step="0.01" />
-          </label>
-          <label>
-            Precio
-            <input name="precio" type="number" step="0.01" />
-          </label>
-          <button class="btn full" type="submit">Agregar producto</button>
-        </form>
-        <div id="productEmpty" class="empty-state">Sin productos importados.</div>
-        <div class="product-table-wrapper">
-          <table class="product-table" id="productTable" hidden>
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Unidades</th>
-                <th>Precio</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="productTableBody"></tbody>
-          </table>
-        </div>
-      </section>
+      </div>
 
       <section class="panel reveal" style="--delay: 240ms;" id="notFound" hidden>
         <div class="panel-header">

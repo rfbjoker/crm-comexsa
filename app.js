@@ -299,9 +299,14 @@ function renderPipeline() {
     const column = document.createElement("div");
     column.className = "pipeline-column";
     column.innerHTML = `
-      <h3>${stage.label}</h3>
-      <div class="stage-summary">${opportunities.length} clientes</div>
+      <div class="pipeline-header">
+        <h3>${stage.label}</h3>
+        <span class="stage-count">${opportunities.length}</span>
+      </div>
     `;
+
+    const list = document.createElement("div");
+    list.className = "pipeline-list";
 
     opportunities.forEach((opp) => {
       const row = document.createElement("div");
@@ -310,16 +315,17 @@ function renderPipeline() {
       row.innerHTML = `
         <div class="row-name">${opp.empresa}</div>
       `;
-      column.appendChild(row);
+      list.appendChild(row);
     });
 
     if (opportunities.length === 0) {
       const empty = document.createElement("div");
       empty.className = "empty-state";
       empty.textContent = "Sin clientes aún";
-      column.appendChild(empty);
+      list.appendChild(empty);
     }
 
+    column.appendChild(list);
     pipelineColumns.appendChild(column);
   });
 }

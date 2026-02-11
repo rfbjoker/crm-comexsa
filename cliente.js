@@ -15,9 +15,18 @@ const DEFAULT_STATE = {
 
 const clientTitle = document.getElementById("clientTitle");
 const clientSubtitle = document.getElementById("clientSubtitle");
+const clientLayout = document.getElementById("clientLayout");
 const clientPanel = document.getElementById("clientPanel");
 const actionPanel = document.getElementById("actionPanel");
 const notFound = document.getElementById("notFound");
+const clientSummary = document.getElementById("clientSummary");
+const summaryStage = document.getElementById("summaryStage");
+const summaryCommercial = document.getElementById("summaryCommercial");
+const summaryLocation = document.getElementById("summaryLocation");
+const summaryUpdated = document.getElementById("summaryUpdated");
+const summaryLastAction = document.getElementById("summaryLastAction");
+const summaryActions = document.getElementById("summaryActions");
+const summaryProducts = document.getElementById("summaryProducts");
 
 const backToClients = document.getElementById("backToClients");
 const backToClientsAlt = document.getElementById("backToClientsAlt");
@@ -293,18 +302,27 @@ window.addEventListener("storage", (event) => {
 
 function render() {
   if (!current) {
+    if (clientLayout) {
+      clientLayout.hidden = true;
+    }
     clientPanel.hidden = true;
     actionPanel.hidden = true;
     productPanel.hidden = true;
+    clientSummary.hidden = true;
     notFound.hidden = false;
     return;
   }
   notFound.hidden = true;
+  if (clientLayout) {
+    clientLayout.hidden = false;
+  }
+  clientSummary.hidden = false;
   clientPanel.hidden = false;
   actionPanel.hidden = false;
   productPanel.hidden = false;
 
   updateHeader();
+  renderSummary();
   renderSalesSelect();
   renderForm();
   renderActionSelect();
@@ -317,6 +335,28 @@ function updateHeader() {
   clientTitle.textContent = current.empresa || "Ficha de cliente";
   const stageLabel = STAGES.find((stage) => stage.id === current.etapa)?.label || "Prospecto";
   clientSubtitle.textContent = `${current.contacto || "Sin contacto"} · ${stageLabel}`;
+}
+
+function renderSummary() {
+  if (!current) return;
+  const stageLabel = STAGES.find((stage) => stage.id === current.etapa)?.label || "Prospecto";
+  const commercialName = getSalespersonName(current.comercialId);
+  const location = [current.poblacion, current.provincia].filter(Boolean).join(", ") || "—";
+  const updated = current.updatedAt ? formatDate(current.updatedAt) : "—";
+  const actionsCount = Array.isArray(current.acciones) ? current.acciones.length : 0;
+  const productsCount = Array.isArray(current.productos) ? current.productos.length : 0;
+  const lastAction = getLastAction(current.acciones);
+
+  summaryStage.textContent = stageLabel;
+  summaryStage.dataset.stage = current.etapa || "prospecto";
+  summaryCommercial.textContent = commercialName;
+  summaryLocation.textContent = location;
+  summaryUpdated.textContent = updated;
+  summaryLastAction.textContent = lastAction
+    ? `${capitalize(lastAction.tipo)} · ${formatDate(lastAction.fecha)}`
+    : "Sin acciones";
+  summaryActions.textContent = `${actionsCount}`;
+  summaryProducts.textContent = `${productsCount}`;
 }
 
 function renderSalesSelect() {
@@ -718,6 +758,31 @@ function formatNumber(value) {
 function formatCurrency(value) {
   if (value == null) return "-";
   return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(value);
+}
+
+function formatDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+function getLastAction(actions) {
+  if (!Array.isArray(actions) || actions.length === 0) return null;
+  const sorted = actions
+    .filter((action) => action.fecha)
+    .slice()
+    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  return sorted[0] || null;
+}
+
+function getSalespersonName(salespersonId) {
+  if (!salespersonId) return "Sin asignar";
+  const salesperson = state.salespeople.find((item) => item.id === salespersonId);
+  return salesperson ? salesperson.nombre : "Sin asignar";
 }
 
 function escapeHtml(value) {
