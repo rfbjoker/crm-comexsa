@@ -208,7 +208,7 @@ opportunityForm.addEventListener("submit", (event) => {
 
   state.opportunities.unshift(newOpportunity);
   opportunityForm.reset();
-  scheduleSave("Nuevo prospecto guardado");
+  saveState("Nuevo prospecto guardado");
   render();
   window.location.href = `cliente.html?id=${encodeURIComponent(newOpportunity.id)}`;
 });
