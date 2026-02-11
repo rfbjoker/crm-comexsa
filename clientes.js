@@ -15,13 +15,8 @@ const DEFAULT_STATE = {
 
 const backToPanel = document.getElementById("backToPanel");
 const clientSearch = document.getElementById("clientSearch");
-const filterStage = document.getElementById("filterStage");
-const filterSales = document.getElementById("filterSales");
-const sortBy = document.getElementById("sortBy");
-const clearFilters = document.getElementById("clearFilters");
 const clientList = document.getElementById("clientList");
 const clientCount = document.getElementById("clientCount");
-const clientStats = document.getElementById("clientStats");
 
 let state = loadState();
 
@@ -29,7 +24,6 @@ window.addEventListener("load", () => {
   document.body.classList.add("loaded");
 });
 
-renderFilters();
 renderList();
 
 backToPanel.addEventListener("click", () => {
@@ -40,91 +34,17 @@ clientSearch.addEventListener("input", () => {
   renderList();
 });
 
-filterStage.addEventListener("change", () => {
-  renderList();
-});
-
-filterSales.addEventListener("change", () => {
-  renderList();
-});
-
-sortBy.addEventListener("change", () => {
-  renderList();
-});
-
-clearFilters.addEventListener("click", () => {
-  clientSearch.value = "";
-  filterStage.value = "all";
-  filterSales.value = "all";
-  sortBy.value = "updated";
-  renderList();
-});
-
 window.addEventListener("storage", (event) => {
   if (event.key !== STORAGE_KEY) return;
   state = loadState();
-  renderFilters();
   renderList();
 });
 
-function renderFilters() {
-  const stageValue = filterStage.value || "all";
-  const salesValue = filterSales.value || "all";
-
-  filterStage.innerHTML = "";
-  const stageAll = document.createElement("option");
-  stageAll.value = "all";
-  stageAll.textContent = "Todas las etapas";
-  filterStage.appendChild(stageAll);
-  STAGES.forEach((stage) => {
-    const option = document.createElement("option");
-    option.value = stage.id;
-    option.textContent = stage.label;
-    filterStage.appendChild(option);
-  });
-  filterStage.value = STAGES.some((stage) => stage.id === stageValue) ? stageValue : "all";
-
-  filterSales.innerHTML = "";
-  const salesAll = document.createElement("option");
-  salesAll.value = "all";
-  salesAll.textContent = "Todos los comerciales";
-  filterSales.appendChild(salesAll);
-  state.salespeople.forEach((salesperson) => {
-    const option = document.createElement("option");
-    option.value = salesperson.id;
-    option.textContent = salesperson.nombre;
-    filterSales.appendChild(option);
-  });
-  filterSales.value = state.salespeople.some((item) => item.id === salesValue) ? salesValue : "all";
-}
-
 function renderList() {
   const query = clientSearch.value.trim().toLowerCase();
-  const stageFilter = filterStage.value;
-  const salesFilter = filterSales.value;
-  const order = sortBy.value;
-  let items = state.opportunities.filter((opp) => matchesQuery(opp, query));
-
-  if (stageFilter && stageFilter !== "all") {
-    items = items.filter((opp) => opp.etapa === stageFilter);
-  }
-
-  if (salesFilter && salesFilter !== "all") {
-    items = items.filter((opp) => opp.comercialId === salesFilter);
-  }
-
-  items = items.slice().sort((a, b) => {
-    if (order === "name") {
-      return (a.empresa || "").localeCompare(b.empresa || "", "es", { sensitivity: "base" });
-    }
-    const dateA = new Date(order === "created" ? a.createdAt : a.updatedAt || a.createdAt || 0);
-    const dateB = new Date(order === "created" ? b.createdAt : b.updatedAt || b.createdAt || 0);
-    return dateB - dateA;
-  });
-
+  const items = state.opportunities.filter((opp) => matchesQuery(opp, query));
   clientList.innerHTML = "";
-  clientCount.textContent = `${items.length} empresas encontradas`;
-  renderStats(items);
+  clientCount.textContent = `${items.length} prospectos encontrados`;
 
   if (items.length === 0) {
     const empty = document.createElement("div");
@@ -136,32 +56,20 @@ function renderList() {
 
   items.forEach((opp) => {
     const stageLabel = getStageLabel(opp.etapa);
-    const lastAction = getLastActionDate(opp.acciones);
-    const lastUpdate = formatDate(opp.updatedAt || opp.createdAt);
-    const row = document.createElement("div");
-    row.className = "client-row";
-    row.innerHTML = `
-      <div class="client-main">
-        <div class="client-title">
-          <span class="client-name">${opp.empresa}</span>
-          <span class="stage-pill" data-stage="${opp.etapa || "prospecto"}">${stageLabel}</span>
-        </div>
-        <div class="client-meta">
-          <span>${opp.contacto || "Sin contacto"}</span>
-          <span>${opp.email || "Sin email"}</span>
-          <span>${opp.telefono || "Sin teléfono"}</span>
-        </div>
-        <div class="client-meta">
-          <span>Comercial: ${getSalespersonName(opp.comercialId)}</span>
-          <span>Última acción: ${lastAction}</span>
-          <span>Actualizado: ${lastUpdate}</span>
-        </div>
+    const card = document.createElement("div");
+    card.className = "client-card";
+    card.innerHTML = `
+      <div>
+        <div class="opp-title">${opp.empresa}</div>
+        <div class="sales-meta">${opp.contacto} · ${opp.email || "Sin email"}</div>
+        <div class="sales-meta">${opp.telefono || "Sin teléfono"} · ${stageLabel}</div>
+        <div class="sales-meta">Comercial: ${getSalespersonName(opp.comercialId)}</div>
       </div>
-      <div class="client-actions">
-        <a class="btn ghost" href="cliente.html?id=${encodeURIComponent(opp.id)}">Abrir ficha</a>
+      <div class="sales-actions">
+        <a class="btn ghost" href="cliente.html?id=${encodeURIComponent(opp.id)}" target="_blank" rel="noopener">Abrir ficha</a>
       </div>
     `;
-    clientList.appendChild(row);
+    clientList.appendChild(card);
   });
 }
 
@@ -193,7 +101,7 @@ function getSalespersonName(salespersonId) {
 }
 
 function loadState() {
-  const raw = readStorage();
+  const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return structuredClone(DEFAULT_STATE);
   try {
     const parsed = JSON.parse(raw);
@@ -203,20 +111,6 @@ function loadState() {
     return normalizeState(parsed);
   } catch (error) {
     return structuredClone(DEFAULT_STATE);
-  }
-}
-
-function readStorage() {
-  try {
-    const value = localStorage.getItem(STORAGE_KEY);
-    if (value) return value;
-  } catch (error) {
-    // ignore and try sessionStorage
-  }
-  try {
-    return sessionStorage.getItem(STORAGE_KEY);
-  } catch (fallbackError) {
-    return null;
   }
 }
 
@@ -243,48 +137,4 @@ function normalizeStage(stage) {
     cierre: "cliente"
   };
   return map[stage] || stage;
-}
-
-function renderStats(items) {
-  if (!clientStats) return;
-  clientStats.innerHTML = "";
-  const total = items.length;
-  if (total === 0) {
-    const empty = document.createElement("span");
-    empty.className = "client-stat-pill";
-    empty.textContent = "Sin resultados";
-    clientStats.appendChild(empty);
-    return;
-  }
-
-  STAGES.forEach((stage) => {
-    const count = items.filter((opp) => opp.etapa === stage.id).length;
-    const percent = total > 0 ? Math.round((count / total) * 100) : 0;
-    const pill = document.createElement("span");
-    pill.className = "client-stat-pill";
-    pill.dataset.stage = stage.id;
-    pill.textContent = `${stage.label}: ${count} · ${percent}%`;
-    clientStats.appendChild(pill);
-  });
-}
-
-function getLastActionDate(actions) {
-  if (!Array.isArray(actions) || actions.length === 0) return "Sin acciones";
-  const sorted = actions
-    .filter((action) => action.fecha)
-    .slice()
-    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-  if (sorted.length === 0) return "Sin acciones";
-  return formatDate(sorted[0].fecha);
-}
-
-function formatDate(value) {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString("es-ES", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  });
 }
