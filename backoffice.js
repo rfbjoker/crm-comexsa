@@ -464,11 +464,11 @@ function setSalesFormValues(salesperson) {
 }
 
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  writeStorage(JSON.stringify(state));
 }
 
 function loadState() {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  const raw = readStorage();
   if (!raw) return structuredClone(DEFAULT_STATE);
   try {
     const parsed = JSON.parse(raw);
@@ -478,6 +478,34 @@ function loadState() {
     return normalizeState(parsed);
   } catch (error) {
     return structuredClone(DEFAULT_STATE);
+  }
+}
+
+function writeStorage(payload) {
+  try {
+    localStorage.setItem(STORAGE_KEY, payload);
+    return true;
+  } catch (error) {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, payload);
+      return true;
+    } catch (fallbackError) {
+      return false;
+    }
+  }
+}
+
+function readStorage() {
+  try {
+    const value = localStorage.getItem(STORAGE_KEY);
+    if (value) return value;
+  } catch (error) {
+    // ignore and try sessionStorage
+  }
+  try {
+    return sessionStorage.getItem(STORAGE_KEY);
+  } catch (fallbackError) {
+    return null;
   }
 }
 

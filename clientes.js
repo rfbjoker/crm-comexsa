@@ -193,7 +193,7 @@ function getSalespersonName(salespersonId) {
 }
 
 function loadState() {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  const raw = readStorage();
   if (!raw) return structuredClone(DEFAULT_STATE);
   try {
     const parsed = JSON.parse(raw);
@@ -203,6 +203,20 @@ function loadState() {
     return normalizeState(parsed);
   } catch (error) {
     return structuredClone(DEFAULT_STATE);
+  }
+}
+
+function readStorage() {
+  try {
+    const value = localStorage.getItem(STORAGE_KEY);
+    if (value) return value;
+  } catch (error) {
+    // ignore and try sessionStorage
+  }
+  try {
+    return sessionStorage.getItem(STORAGE_KEY);
+  } catch (fallbackError) {
+    return null;
   }
 }
 

@@ -1,4 +1,5 @@
 const STORAGE_KEY = "crmcomexsa:v1";
+const FALLBACK_KEY = "crmcomexsa:pending";
 const STAGES = [
   { id: "prospecto", label: "Prospecto" },
   { id: "primeros-contactos", label: "Acción Comercial" },
@@ -209,6 +210,7 @@ opportunityForm.addEventListener("submit", (event) => {
   state.opportunities.unshift(newOpportunity);
   opportunityForm.reset();
   saveState("Nuevo prospecto guardado");
+  rememberPendingOpportunity(newOpportunity);
   render();
   window.location.href = `cliente.html?id=${encodeURIComponent(newOpportunity.id)}`;
 });
@@ -355,14 +357,14 @@ function scheduleSave(message) {
 }
 
 function saveState(message) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  writeStorage(JSON.stringify(state));
   const now = new Date();
   saveStatus.textContent = message || "Guardado";
   saveTime.textContent = `Último guardado ${now.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`;
 }
 
 function loadState() {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  const raw = readStorage();
   if (!raw) return structuredClone(DEFAULT_STATE);
   try {
     const parsed = JSON.parse(raw);
@@ -372,6 +374,42 @@ function loadState() {
     return normalizeState(parsed);
   } catch (error) {
     return structuredClone(DEFAULT_STATE);
+  }
+}
+
+function writeStorage(payload) {
+  try {
+    localStorage.setItem(STORAGE_KEY, payload);
+    return true;
+  } catch (error) {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, payload);
+      return true;
+    } catch (fallbackError) {
+      return false;
+    }
+  }
+}
+
+function readStorage() {
+  try {
+    const value = localStorage.getItem(STORAGE_KEY);
+    if (value) return value;
+  } catch (error) {
+    // ignore and try sessionStorage
+  }
+  try {
+    return sessionStorage.getItem(STORAGE_KEY);
+  } catch (fallbackError) {
+    return null;
+  }
+}
+
+function rememberPendingOpportunity(opportunity) {
+  try {
+    sessionStorage.setItem(FALLBACK_KEY, JSON.stringify(opportunity));
+  } catch (error) {
+    // ignore
   }
 }
 

@@ -1,4 +1,5 @@
 const STORAGE_KEY = "crmcomexsa:v1";
+const FALLBACK_KEY = "crmcomexsa:pending";
 const STAGES = [
   { id: "prospecto", label: "Prospecto" },
   { id: "primeros-contactos", label: "Acción Comercial" },
@@ -49,7 +50,7 @@ const params = new URLSearchParams(window.location.search);
 const opportunityId = params.get("id");
 
 let state = loadState();
-let current = findOpportunity();
+let current = findOpportunity() || recoverPendingOpportunity();
 let saveTimeoutId;
 let editingActionId = null;
 let editingProductId = null;
@@ -538,7 +539,7 @@ function scheduleSave(message) {
 }
 
 function saveState(message) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  writeStorage(JSON.stringify(state));
   const now = new Date();
   clientSaveStatus.textContent = message || "Guardado";
   clientSaveTime.textContent = `Último guardado ${now.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`;
@@ -550,7 +551,7 @@ function findOpportunity() {
 }
 
 function loadState() {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  const raw = readStorage();
   if (!raw) return structuredClone(DEFAULT_STATE);
   try {
     const parsed = JSON.parse(raw);
@@ -560,6 +561,62 @@ function loadState() {
     return normalizeState(parsed);
   } catch (error) {
     return structuredClone(DEFAULT_STATE);
+  }
+}
+
+function recoverPendingOpportunity() {
+  if (!opportunityId) return null;
+  const pending = readPendingOpportunity();
+  if (!pending || pending.id !== opportunityId) return null;
+  state.opportunities.unshift(pending);
+  saveState("Prospecto recuperado");
+  clearPendingOpportunity();
+  return pending;
+}
+
+function readPendingOpportunity() {
+  try {
+    const raw = sessionStorage.getItem(FALLBACK_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (error) {
+    return null;
+  }
+}
+
+function clearPendingOpportunity() {
+  try {
+    sessionStorage.removeItem(FALLBACK_KEY);
+  } catch (error) {
+    // ignore
+  }
+}
+
+function writeStorage(payload) {
+  try {
+    localStorage.setItem(STORAGE_KEY, payload);
+    return true;
+  } catch (error) {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, payload);
+      return true;
+    } catch (fallbackError) {
+      return false;
+    }
+  }
+}
+
+function readStorage() {
+  try {
+    const value = localStorage.getItem(STORAGE_KEY);
+    if (value) return value;
+  } catch (error) {
+    // ignore and try sessionStorage
+  }
+  try {
+    return sessionStorage.getItem(STORAGE_KEY);
+  } catch (fallbackError) {
+    return null;
   }
 }
 
