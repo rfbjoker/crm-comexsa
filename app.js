@@ -1,5 +1,4 @@
 const STORAGE_KEY = "crmcomexsa:v1";
-const FALLBACK_KEY = "crmcomexsa:pending";
 const STAGES = [
   { id: "prospecto", label: "Prospecto" },
   { id: "primeros-contactos", label: "Acción Comercial" },
@@ -175,7 +174,7 @@ openBackOffice.addEventListener("click", () => {
   window.open("backoffice.html", "_blank", "noopener");
 });
 openClients.addEventListener("click", () => {
-  window.location.href = "clientes.html";
+  window.open("clientes.html", "_blank", "noopener");
 });
 
 window.addEventListener("storage", (event) => {
@@ -209,10 +208,9 @@ opportunityForm.addEventListener("submit", (event) => {
 
   state.opportunities.unshift(newOpportunity);
   opportunityForm.reset();
-  saveState("Nuevo prospecto guardado");
-  rememberPendingOpportunity(newOpportunity);
+  scheduleSave("Nuevo prospecto guardado");
   render();
-  window.location.href = `cliente.html?id=${encodeURIComponent(newOpportunity.id)}`;
+  window.open(`cliente.html?id=${encodeURIComponent(newOpportunity.id)}`, "_blank", "noopener");
 });
 
 
@@ -222,7 +220,7 @@ pipelineColumns.addEventListener("click", (event) => {
   const opportunityId = row.dataset.id;
   const opportunity = state.opportunities.find((opp) => opp.id === opportunityId);
   if (!opportunity) return;
-  window.location.href = `cliente.html?id=${encodeURIComponent(opportunityId)}`;
+  window.open(`cliente.html?id=${encodeURIComponent(opportunityId)}`, "_blank", "noopener");
 });
 
 
@@ -301,14 +299,9 @@ function renderPipeline() {
     const column = document.createElement("div");
     column.className = "pipeline-column";
     column.innerHTML = `
-      <div class="pipeline-header">
-        <h3>${stage.label}</h3>
-        <span class="stage-count">${opportunities.length}</span>
-      </div>
+      <h3>${stage.label}</h3>
+      <div class="stage-summary">${opportunities.length} clientes</div>
     `;
-
-    const list = document.createElement("div");
-    list.className = "pipeline-list";
 
     opportunities.forEach((opp) => {
       const row = document.createElement("div");
@@ -317,17 +310,16 @@ function renderPipeline() {
       row.innerHTML = `
         <div class="row-name">${opp.empresa}</div>
       `;
-      list.appendChild(row);
+      column.appendChild(row);
     });
 
     if (opportunities.length === 0) {
       const empty = document.createElement("div");
       empty.className = "empty-state";
       empty.textContent = "Sin clientes aún";
-      list.appendChild(empty);
+      column.appendChild(empty);
     }
 
-    column.appendChild(list);
     pipelineColumns.appendChild(column);
   });
 }
@@ -357,14 +349,14 @@ function scheduleSave(message) {
 }
 
 function saveState(message) {
-  writeStorage(JSON.stringify(state));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   const now = new Date();
   saveStatus.textContent = message || "Guardado";
   saveTime.textContent = `Último guardado ${now.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`;
 }
 
 function loadState() {
-  const raw = readStorage();
+  const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return structuredClone(DEFAULT_STATE);
   try {
     const parsed = JSON.parse(raw);
@@ -374,42 +366,6 @@ function loadState() {
     return normalizeState(parsed);
   } catch (error) {
     return structuredClone(DEFAULT_STATE);
-  }
-}
-
-function writeStorage(payload) {
-  try {
-    localStorage.setItem(STORAGE_KEY, payload);
-    return true;
-  } catch (error) {
-    try {
-      sessionStorage.setItem(STORAGE_KEY, payload);
-      return true;
-    } catch (fallbackError) {
-      return false;
-    }
-  }
-}
-
-function readStorage() {
-  try {
-    const value = localStorage.getItem(STORAGE_KEY);
-    if (value) return value;
-  } catch (error) {
-    // ignore and try sessionStorage
-  }
-  try {
-    return sessionStorage.getItem(STORAGE_KEY);
-  } catch (fallbackError) {
-    return null;
-  }
-}
-
-function rememberPendingOpportunity(opportunity) {
-  try {
-    sessionStorage.setItem(FALLBACK_KEY, JSON.stringify(opportunity));
-  } catch (error) {
-    // ignore
   }
 }
 
