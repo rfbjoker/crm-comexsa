@@ -132,49 +132,59 @@
           </section>
         </div>
 
-        <div class="client-right">
-          <section class="panel reveal" style="--delay: 240ms;" id="productPanel" hidden>
-            <div class="panel-header">
-              <h2>Productos consumidos</h2>
-              <p>Importa una tabla de Excel con columnas: Productos, Unidades, Precio.</p>
-            </div>
-            <div id="productEmpty" class="empty-state">Sin productos importados.</div>
-            <div class="product-table-wrapper">
-              <table class="product-table" id="productTable" hidden>
-                <thead>
-                  <tr>
-                    <th>Producto</th>
-                    <th>Unidades</th>
-                    <th>Precio</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="productTableBody"></tbody>
-              </table>
-            </div>
-            <div class="form-grid">
-              <label class="full">
-                Importar Excel / CSV
-                <input id="productFile" type="file" accept=".xlsx,.xls,.csv" />
-              </label>
-            </div>
-            <form id="productForm" class="form-grid" autocomplete="off">
-              <label>
-                Producto
-                <input name="producto" type="text" required />
-              </label>
-              <label>
-                Unidades
-                <input name="unidades" type="number" step="0.01" />
-              </label>
-              <label>
-                Precio
-                <input name="precio" type="number" step="0.01" />
-              </label>
-              <button class="btn full" type="submit">Agregar producto</button>
-            </form>
-          </section>
-        </div>
+        <section class="panel reveal" style="--delay: 240ms;" id="productPanel" hidden>
+          <div class="panel-header">
+            <h2>Productos consumidos</h2>
+            <p>Importa una tabla de Excel con columnas: Productos, Unidades, Precio, Fecha.</p>
+          </div>
+          <div class="form-grid">
+            <label class="full">
+              Buscar producto
+              <input id="productSearch" type="text" placeholder="Escribe para buscar" />
+            </label>
+          </div>
+          <div class="product-hint" id="productHint"></div>
+          <div id="productEmpty" class="empty-state">Sin productos importados.</div>
+          <div class="product-table-wrapper">
+            <table class="product-table" id="productTable" hidden>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Fecha</th>
+                  <th>Unidades</th>
+                  <th>Precio</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="productTableBody"></tbody>
+            </table>
+          </div>
+          <div class="form-grid">
+            <label class="full">
+              Importar Excel / CSV
+              <input id="productFile" type="file" accept=".xlsx,.xls,.csv" />
+            </label>
+          </div>
+          <form id="productForm" class="form-grid" autocomplete="off">
+            <label>
+              Producto
+              <input name="producto" type="text" required />
+            </label>
+            <label>
+              Fecha
+              <input name="fecha" type="date" />
+            </label>
+            <label>
+              Unidades
+              <input name="unidades" type="number" step="0.01" />
+            </label>
+            <label>
+              Precio
+              <input name="precio" type="number" step="0.01" />
+            </label>
+            <button class="btn full" type="submit">Agregar producto</button>
+          </form>
+        </section>
       </div>
 
       <section class="panel reveal" style="--delay: 240ms;" id="notFound" hidden>
