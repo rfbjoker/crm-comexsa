@@ -19,14 +19,9 @@ const clientLayout = document.getElementById("clientLayout");
 const clientPanel = document.getElementById("clientPanel");
 const actionPanel = document.getElementById("actionPanel");
 const notFound = document.getElementById("notFound");
-const clientSummary = document.getElementById("clientSummary");
-const summaryStage = document.getElementById("summaryStage");
-const summaryCommercial = document.getElementById("summaryCommercial");
-const summaryLocation = document.getElementById("summaryLocation");
-const summaryUpdated = document.getElementById("summaryUpdated");
-const summaryLastAction = document.getElementById("summaryLastAction");
-const summaryActions = document.getElementById("summaryActions");
-const summaryProducts = document.getElementById("summaryProducts");
+const detailLastAction = document.getElementById("detailLastAction");
+const detailActionCount = document.getElementById("detailActionCount");
+const detailUpdated = document.getElementById("detailUpdated");
 
 const backToClients = document.getElementById("backToClients");
 const backToClientsAlt = document.getElementById("backToClientsAlt");
@@ -94,6 +89,7 @@ clientForm.addEventListener("input", () => {
   });
   scheduleSave("Cambios en ficha");
   updateHeader();
+  renderDetailsSummary();
 });
 
 clientForm.addEventListener("submit", (event) => {
@@ -142,6 +138,7 @@ actionForm.addEventListener("submit", (event) => {
   current.updatedAt = new Date().toISOString();
   resetActionForm();
   renderActions();
+  renderDetailsSummary();
 });
 
 actionList.addEventListener("click", (event) => {
@@ -159,6 +156,7 @@ actionList.addEventListener("click", (event) => {
     current.updatedAt = new Date().toISOString();
     scheduleSave("Acción eliminada");
     renderActions();
+    renderDetailsSummary();
   }
 });
 
@@ -170,6 +168,7 @@ actionList.addEventListener("change", (event) => {
   action.done = event.target.checked;
   current.updatedAt = new Date().toISOString();
   scheduleSave("Acción actualizada");
+  renderDetailsSummary();
 });
 
 actionCancel.addEventListener("click", () => {
@@ -242,6 +241,7 @@ productForm.addEventListener("submit", (event) => {
   productForm.reset();
   editingProductId = null;
   renderProducts();
+  renderDetailsSummary();
 });
 
 productTableBody.addEventListener("click", (event) => {
@@ -282,6 +282,7 @@ productTableBody.addEventListener("click", (event) => {
     }
     editingProductId = null;
     renderProducts();
+    renderDetailsSummary();
     return;
   }
 
@@ -290,6 +291,7 @@ productTableBody.addEventListener("click", (event) => {
     current.updatedAt = new Date().toISOString();
     saveState("Producto eliminado");
     renderProducts();
+    renderDetailsSummary();
   }
 });
 
@@ -308,7 +310,6 @@ function render() {
     clientPanel.hidden = true;
     actionPanel.hidden = true;
     productPanel.hidden = true;
-    clientSummary.hidden = true;
     notFound.hidden = false;
     return;
   }
@@ -316,13 +317,12 @@ function render() {
   if (clientLayout) {
     clientLayout.hidden = false;
   }
-  clientSummary.hidden = false;
   clientPanel.hidden = false;
   actionPanel.hidden = false;
   productPanel.hidden = false;
 
   updateHeader();
-  renderSummary();
+  renderDetailsSummary();
   renderSalesSelect();
   renderForm();
   renderActionSelect();
@@ -337,26 +337,17 @@ function updateHeader() {
   clientSubtitle.textContent = `${current.contacto || "Sin contacto"} · ${stageLabel}`;
 }
 
-function renderSummary() {
+function renderDetailsSummary() {
   if (!current) return;
-  const stageLabel = STAGES.find((stage) => stage.id === current.etapa)?.label || "Prospecto";
-  const commercialName = getSalespersonName(current.comercialId);
-  const location = [current.poblacion, current.provincia].filter(Boolean).join(", ") || "—";
   const updated = current.updatedAt ? formatDate(current.updatedAt) : "—";
   const actionsCount = Array.isArray(current.acciones) ? current.acciones.length : 0;
-  const productsCount = Array.isArray(current.productos) ? current.productos.length : 0;
   const lastAction = getLastAction(current.acciones);
 
-  summaryStage.textContent = stageLabel;
-  summaryStage.dataset.stage = current.etapa || "prospecto";
-  summaryCommercial.textContent = commercialName;
-  summaryLocation.textContent = location;
-  summaryUpdated.textContent = updated;
-  summaryLastAction.textContent = lastAction
+  detailLastAction.textContent = lastAction
     ? `${capitalize(lastAction.tipo)} · ${formatDate(lastAction.fecha)}`
     : "Sin acciones";
-  summaryActions.textContent = `${actionsCount}`;
-  summaryProducts.textContent = `${productsCount}`;
+  detailActionCount.textContent = `${actionsCount}`;
+  detailUpdated.textContent = updated;
 }
 
 function renderSalesSelect() {
@@ -721,6 +712,7 @@ function importProductsFromRows(rows) {
   current.updatedAt = new Date().toISOString();
   saveState("Productos importados");
   renderProducts();
+  renderDetailsSummary();
 }
 
 function normalizeHeader(value) {

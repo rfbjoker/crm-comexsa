@@ -210,7 +210,7 @@ opportunityForm.addEventListener("submit", (event) => {
   opportunityForm.reset();
   scheduleSave("Nuevo prospecto guardado");
   render();
-  window.open(`cliente.html?id=${encodeURIComponent(newOpportunity.id)}`, "_blank", "noopener");
+  window.location.href = `cliente.html?id=${encodeURIComponent(newOpportunity.id)}`;
 });
 
 
@@ -220,7 +220,7 @@ pipelineColumns.addEventListener("click", (event) => {
   const opportunityId = row.dataset.id;
   const opportunity = state.opportunities.find((opp) => opp.id === opportunityId);
   if (!opportunity) return;
-  window.open(`cliente.html?id=${encodeURIComponent(opportunityId)}`, "_blank", "noopener");
+  window.location.href = `cliente.html?id=${encodeURIComponent(opportunityId)}`;
 });
 
 

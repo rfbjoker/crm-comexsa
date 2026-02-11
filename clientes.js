@@ -158,7 +158,7 @@ function renderList() {
         </div>
       </div>
       <div class="client-actions">
-        <a class="btn ghost" href="cliente.html?id=${encodeURIComponent(opp.id)}" target="_blank" rel="noopener">Abrir ficha</a>
+        <a class="btn ghost" href="cliente.html?id=${encodeURIComponent(opp.id)}">Abrir ficha</a>
       </div>
     `;
     clientList.appendChild(row);
