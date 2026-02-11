@@ -1,6 +1,13 @@
 const STORAGE_KEY = "crmcomexsa:v1";
 // Cambia esta clave para el acceso al back office.
 const BACKOFFICE_PASSWORD = "comexsa2026";
+const STAGES = [
+  { id: "prospecto", label: "Prospecto" },
+  { id: "primeros-contactos", label: "Acción Comercial" },
+  { id: "envio-muestras", label: "Envío de Muestras" },
+  { id: "pedido", label: "Pedido" },
+  { id: "cliente", label: "Cliente" }
+];
 
 const DEFAULT_STATE = {
   salespeople: [
@@ -136,6 +143,8 @@ const salesForm = document.getElementById("salesForm");
 const salesList = document.getElementById("salesList");
 const salesSubmit = document.getElementById("salesSubmit");
 const salesCancel = document.getElementById("salesCancel");
+const clientSearchBack = document.getElementById("clientSearchBack");
+const backClientList = document.getElementById("backClientList");
 
 const exportButton = document.getElementById("exportData");
 const importFile = document.getElementById("importFile");
@@ -151,6 +160,7 @@ window.addEventListener("load", () => {
 
 updateBackOfficeUI();
 renderSalesList();
+renderClientList();
 
 backToFront.addEventListener("click", () => {
   window.open("index.html", "_self");
@@ -210,6 +220,10 @@ salesCancel.addEventListener("click", () => {
   renderSalesList();
 });
 
+clientSearchBack.addEventListener("input", () => {
+  renderClientList();
+});
+
 salesList.addEventListener("click", (event) => {
   const button = event.target.closest("button");
   if (!button) return;
@@ -242,7 +256,24 @@ salesList.addEventListener("click", (event) => {
     }
     saveState();
     renderSalesList();
+    renderClientList();
   }
+});
+
+backClientList.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button) return;
+  if (!ensureUnlocked()) return;
+  const action = button.dataset.action;
+  const clientId = button.dataset.id;
+  if (action !== "delete-client") return;
+  const client = state.opportunities.find((opp) => opp.id === clientId);
+  if (!client) return;
+  const ok = confirm(`¿Eliminar la empresa ${client.empresa}?`);
+  if (!ok) return;
+  state.opportunities = state.opportunities.filter((opp) => opp.id !== clientId);
+  saveState();
+  renderClientList();
 });
 
 exportButton.addEventListener("click", () => {
@@ -275,6 +306,7 @@ importFile.addEventListener("change", (event) => {
       resetSalesForm();
       saveState();
       renderSalesList();
+      renderClientList();
       backOfficeStatus.textContent = "Datos importados correctamente";
     } catch (error) {
       alert("No se pudo importar el archivo. Verifica el formato.");
@@ -291,12 +323,14 @@ resetDemoButton.addEventListener("click", () => {
   resetSalesForm();
   saveState();
   renderSalesList();
+  renderClientList();
 });
 
 window.addEventListener("storage", (event) => {
   if (event.key !== STORAGE_KEY) return;
   state = loadState();
   renderSalesList();
+  renderClientList();
 });
 
 function updateBackOfficeUI() {
@@ -312,6 +346,9 @@ function updateBackOfficeUI() {
   backOfficeUnlock.hidden = false;
   backOfficeLock.hidden = true;
   resetSalesForm();
+  if (clientSearchBack) {
+    clientSearchBack.value = "";
+  }
 }
 
 function ensureUnlocked() {
@@ -324,6 +361,7 @@ function setBackOfficeUnlocked(value) {
   backOfficeUnlocked = value;
   updateBackOfficeUI();
   renderSalesList();
+  renderClientList();
 }
 
 function renderSalesList() {
@@ -361,6 +399,51 @@ function renderSalesList() {
       </div>
     `;
     salesList.appendChild(card);
+  });
+}
+
+function renderClientList() {
+  backClientList.innerHTML = "";
+  if (!backOfficeUnlocked) return;
+  const query = clientSearchBack.value.trim().toLowerCase();
+  const items = state.opportunities
+    .filter((opp) => matchesClientQuery(opp, query))
+    .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+
+  if (items.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "Aún no hay clientes registrados.";
+    backClientList.appendChild(empty);
+    return;
+  }
+
+  items.forEach((opp) => {
+    const stageLabel = getStageLabel(opp.etapa);
+    const row = document.createElement("div");
+    row.className = "client-row";
+    row.innerHTML = `
+      <div class="client-main">
+        <div class="client-title">
+          <span class="client-name">${opp.empresa}</span>
+          <span class="stage-pill" data-stage="${opp.etapa || "prospecto"}">${stageLabel}</span>
+        </div>
+        <div class="client-meta">
+          <span>${opp.contacto || "Sin contacto"}</span>
+          <span>${opp.email || "Sin email"}</span>
+          <span>${opp.telefono || "Sin teléfono"}</span>
+        </div>
+        <div class="client-meta">
+          <span>Comercial: ${getSalespersonName(opp.comercialId)}</span>
+        </div>
+      </div>
+      <div class="client-actions">
+        <button class="product-action" type="button" data-action="delete-client" data-id="${
+          opp.id
+        }">Eliminar</button>
+      </div>
+    `;
+    backClientList.appendChild(row);
   });
 }
 
@@ -439,6 +522,33 @@ function normalizeActionType(type) {
     seguimiento: "whatsapp"
   };
   return map[type] || type;
+}
+
+function matchesClientQuery(opp, query) {
+  if (!query) return true;
+  const salespersonName = getSalespersonName(opp.comercialId).toLowerCase();
+  const haystack = [
+    opp.empresa,
+    opp.contacto,
+    opp.email,
+    opp.telefono,
+    salespersonName,
+    getStageLabel(opp.etapa)
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(query);
+}
+
+function getStageLabel(stageId) {
+  return STAGES.find((stage) => stage.id === stageId)?.label || "Prospecto";
+}
+
+function getSalespersonName(salespersonId) {
+  if (!salespersonId) return "Sin asignar";
+  const salesperson = state.salespeople.find((item) => item.id === salespersonId);
+  return salesperson ? salesperson.nombre : "Sin asignar";
 }
 
 function safeParseJson(raw) {

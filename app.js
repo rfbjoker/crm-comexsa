@@ -174,7 +174,7 @@ openBackOffice.addEventListener("click", () => {
   window.open("backoffice.html", "_blank", "noopener");
 });
 openClients.addEventListener("click", () => {
-  window.open("clientes.html", "_blank", "noopener");
+  window.location.href = "clientes.html";
 });
 
 window.addEventListener("storage", (event) => {
