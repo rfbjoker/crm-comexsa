@@ -1,4 +1,5 @@
 const STORAGE_KEY = "crmcomexsa:v1";
+const FALLBACK_KEY = "crmcomexsa:pending";
 const STAGES = [
   { id: "prospecto", label: "Prospecto" },
   { id: "primeros-contactos", label: "Acción Comercial" },
@@ -15,9 +16,13 @@ const DEFAULT_STATE = {
 
 const clientTitle = document.getElementById("clientTitle");
 const clientSubtitle = document.getElementById("clientSubtitle");
+const clientLayout = document.getElementById("clientLayout");
 const clientPanel = document.getElementById("clientPanel");
 const actionPanel = document.getElementById("actionPanel");
 const notFound = document.getElementById("notFound");
+const detailLastAction = document.getElementById("detailLastAction");
+const detailActionCount = document.getElementById("detailActionCount");
+const detailUpdated = document.getElementById("detailUpdated");
 
 const backToClients = document.getElementById("backToClients");
 const backToClientsAlt = document.getElementById("backToClientsAlt");
@@ -36,6 +41,8 @@ const actionList = document.getElementById("actionList");
 const actionEmpty = document.getElementById("actionEmpty");
 const productPanel = document.getElementById("productPanel");
 const productFile = document.getElementById("productFile");
+const productSearch = document.getElementById("productSearch");
+const productHint = document.getElementById("productHint");
 const productEmpty = document.getElementById("productEmpty");
 const productTable = document.getElementById("productTable");
 const productTableBody = document.getElementById("productTableBody");
@@ -45,7 +52,7 @@ const params = new URLSearchParams(window.location.search);
 const opportunityId = params.get("id");
 
 let state = loadState();
-let current = findOpportunity();
+let current = findOpportunity() || recoverPendingOpportunity();
 let saveTimeoutId;
 let editingActionId = null;
 let editingProductId = null;
@@ -57,11 +64,11 @@ window.addEventListener("load", () => {
 render();
 
 backToClients.addEventListener("click", () => {
-  window.open("clientes.html", "_self");
+  window.open("clientes-v2.html", "_self");
 });
 
 backToClientsAlt.addEventListener("click", () => {
-  window.open("clientes.html", "_self");
+  window.open("clientes-v2.html", "_self");
 });
 
 backToPanel.addEventListener("click", () => {
@@ -85,6 +92,7 @@ clientForm.addEventListener("input", () => {
   });
   scheduleSave("Cambios en ficha");
   updateHeader();
+  renderDetailsSummary();
 });
 
 clientForm.addEventListener("submit", (event) => {
@@ -133,6 +141,7 @@ actionForm.addEventListener("submit", (event) => {
   current.updatedAt = new Date().toISOString();
   resetActionForm();
   renderActions();
+  renderDetailsSummary();
 });
 
 actionList.addEventListener("click", (event) => {
@@ -150,6 +159,7 @@ actionList.addEventListener("click", (event) => {
     current.updatedAt = new Date().toISOString();
     scheduleSave("Acción eliminada");
     renderActions();
+    renderDetailsSummary();
   }
 });
 
@@ -161,6 +171,7 @@ actionList.addEventListener("change", (event) => {
   action.done = event.target.checked;
   current.updatedAt = new Date().toISOString();
   scheduleSave("Acción actualizada");
+  renderDetailsSummary();
 });
 
 actionCancel.addEventListener("click", () => {
@@ -190,7 +201,7 @@ productFile.addEventListener("change", (event) => {
         productFile.value = "";
       } catch (error) {
         alert(
-          "No se pudo importar. Asegúrate de usar un Excel con columnas: Productos, Unidades, Precio."
+          "No se pudo importar. Asegúrate de usar un Excel con columnas: Productos, Unidades, Precio, Fecha."
         );
       }
     };
@@ -206,11 +217,15 @@ productFile.addEventListener("change", (event) => {
       productFile.value = "";
     } catch (error) {
       alert(
-        "No se pudo importar. Asegúrate de usar un CSV con columnas: Productos, Unidades, Precio."
+        "No se pudo importar. Asegúrate de usar un CSV con columnas: Productos, Unidades, Precio, Fecha."
       );
     }
   };
   reader.readAsText(file);
+});
+
+productSearch.addEventListener("input", () => {
+  renderProducts();
 });
 
 productForm.addEventListener("submit", (event) => {
@@ -219,20 +234,26 @@ productForm.addEventListener("submit", (event) => {
   const formData = new FormData(productForm);
   const producto = formData.get("producto").trim();
   if (!producto) return;
+  const fecha = normalizeDateValue(formData.get("fecha")) || new Date().toISOString().slice(0, 10);
   const unidades = parseLocaleNumber(formData.get("unidades"));
   const precio = parseLocaleNumber(formData.get("precio"));
   current.productos = Array.isArray(current.productos) ? current.productos : [];
   current.productos.unshift({
     id: createId("prod"),
     producto,
+    fecha,
     unidades,
     precio
   });
   current.updatedAt = new Date().toISOString();
   saveState("Producto agregado");
   productForm.reset();
+  if (productForm.fecha) {
+    productForm.fecha.value = new Date().toISOString().slice(0, 10);
+  }
   editingProductId = null;
   renderProducts();
+  renderDetailsSummary();
 });
 
 productTableBody.addEventListener("click", (event) => {
@@ -257,15 +278,18 @@ productTableBody.addEventListener("click", (event) => {
     const row = button.closest("tr");
     if (!row) return;
     const productoInput = row.querySelector("[data-field=\"producto\"]");
+    const fechaInput = row.querySelector("[data-field=\"fecha\"]");
     const unidadesInput = row.querySelector("[data-field=\"unidades\"]");
     const precioInput = row.querySelector("[data-field=\"precio\"]");
     const producto = productoInput?.value.trim();
     if (!producto) return;
+    const fecha = normalizeDateValue(fechaInput?.value) || new Date().toISOString().slice(0, 10);
     const unidades = parseLocaleNumber(unidadesInput?.value);
     const precio = parseLocaleNumber(precioInput?.value);
     const item = (current.productos || []).find((prod) => prod.id === productId);
     if (item) {
       item.producto = producto;
+      item.fecha = fecha;
       item.unidades = unidades;
       item.precio = precio;
       current.updatedAt = new Date().toISOString();
@@ -273,6 +297,7 @@ productTableBody.addEventListener("click", (event) => {
     }
     editingProductId = null;
     renderProducts();
+    renderDetailsSummary();
     return;
   }
 
@@ -281,6 +306,7 @@ productTableBody.addEventListener("click", (event) => {
     current.updatedAt = new Date().toISOString();
     saveState("Producto eliminado");
     renderProducts();
+    renderDetailsSummary();
   }
 });
 
@@ -293,6 +319,9 @@ window.addEventListener("storage", (event) => {
 
 function render() {
   if (!current) {
+    if (clientLayout) {
+      clientLayout.hidden = true;
+    }
     clientPanel.hidden = true;
     actionPanel.hidden = true;
     productPanel.hidden = true;
@@ -300,11 +329,15 @@ function render() {
     return;
   }
   notFound.hidden = true;
+  if (clientLayout) {
+    clientLayout.hidden = false;
+  }
   clientPanel.hidden = false;
   actionPanel.hidden = false;
   productPanel.hidden = false;
 
   updateHeader();
+  renderDetailsSummary();
   renderSalesSelect();
   renderForm();
   renderActionSelect();
@@ -317,6 +350,19 @@ function updateHeader() {
   clientTitle.textContent = current.empresa || "Ficha de cliente";
   const stageLabel = STAGES.find((stage) => stage.id === current.etapa)?.label || "Prospecto";
   clientSubtitle.textContent = `${current.contacto || "Sin contacto"} · ${stageLabel}`;
+}
+
+function renderDetailsSummary() {
+  if (!current) return;
+  const updated = current.updatedAt ? formatDate(current.updatedAt) : "—";
+  const actionsCount = Array.isArray(current.acciones) ? current.acciones.length : 0;
+  const lastAction = getLastAction(current.acciones);
+
+  detailLastAction.textContent = lastAction
+    ? `${capitalize(lastAction.tipo)} · ${formatDate(lastAction.fecha)}`
+    : "Sin acciones";
+  detailActionCount.textContent = `${actionsCount}`;
+  detailUpdated.textContent = updated;
 }
 
 function renderSalesSelect() {
@@ -360,6 +406,9 @@ function renderForm() {
   clientForm.notas.value = current.notas || "";
   if (!actionForm.fecha.value) {
     actionForm.fecha.value = new Date().toISOString().slice(0, 10);
+  }
+  if (productForm.fecha && !productForm.fecha.value) {
+    productForm.fecha.value = new Date().toISOString().slice(0, 10);
   }
 }
 
@@ -441,10 +490,33 @@ function renderActions() {
 
 function renderProducts() {
   const productos = Array.isArray(current.productos) ? current.productos : [];
+  const query = productSearch.value.trim().toLowerCase();
+  let filtered = productos.filter((item) =>
+    query ? String(item.producto || "").toLowerCase().includes(query) : true
+  );
+  filtered = filtered.slice().sort((a, b) => toDateValue(b.fecha) - toDateValue(a.fecha));
+  const totalCount = filtered.length;
+  const showLimited = query.length === 0;
+  const visible = showLimited ? filtered.slice(0, 20) : filtered;
   productTableBody.innerHTML = "";
 
-  if (productos.length === 0) {
+  if (productHint) {
+    if (totalCount === 0) {
+      productHint.textContent = "";
+    } else if (showLimited && totalCount > 20) {
+      productHint.textContent = `Mostrando 20 de ${totalCount} productos recientes.`;
+    } else if (showLimited) {
+      productHint.textContent = `Mostrando ${totalCount} productos recientes.`;
+    } else {
+      productHint.textContent = `Mostrando ${totalCount} coincidencias.`;
+    }
+  }
+
+  if (totalCount === 0) {
     productEmpty.hidden = false;
+    productEmpty.textContent = query
+      ? "No hay productos que coincidan con la búsqueda."
+      : "Sin productos importados.";
     productTable.hidden = true;
     return;
   }
@@ -452,11 +524,12 @@ function renderProducts() {
   productEmpty.hidden = true;
   productTable.hidden = false;
 
-  productos.forEach((item) => {
+  visible.forEach((item) => {
     const row = document.createElement("tr");
     if (editingProductId === item.id) {
       row.innerHTML = `
         <td><input type="text" data-field="producto" value="${escapeHtml(item.producto)}" /></td>
+        <td><input type="date" data-field="fecha" value="${valueOrEmpty(item.fecha)}" /></td>
         <td><input type="number" step="0.01" data-field="unidades" value="${valueOrEmpty(item.unidades)}" /></td>
         <td><input type="number" step="0.01" data-field="precio" value="${valueOrEmpty(item.precio)}" /></td>
         <td>
@@ -467,6 +540,7 @@ function renderProducts() {
     } else {
       row.innerHTML = `
         <td>${escapeHtml(item.producto)}</td>
+        <td>${formatDate(item.fecha)}</td>
         <td>${formatNumber(item.unidades)}</td>
         <td>${formatCurrency(item.precio)}</td>
         <td>
@@ -507,7 +581,7 @@ function scheduleSave(message) {
 }
 
 function saveState(message) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  writeStorage(JSON.stringify(state));
   const now = new Date();
   clientSaveStatus.textContent = message || "Guardado";
   clientSaveTime.textContent = `Último guardado ${now.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`;
@@ -519,7 +593,7 @@ function findOpportunity() {
 }
 
 function loadState() {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  const raw = readStorage();
   if (!raw) return structuredClone(DEFAULT_STATE);
   try {
     const parsed = JSON.parse(raw);
@@ -529,6 +603,62 @@ function loadState() {
     return normalizeState(parsed);
   } catch (error) {
     return structuredClone(DEFAULT_STATE);
+  }
+}
+
+function recoverPendingOpportunity() {
+  if (!opportunityId) return null;
+  const pending = readPendingOpportunity();
+  if (!pending || pending.id !== opportunityId) return null;
+  state.opportunities.unshift(pending);
+  saveState("Prospecto recuperado");
+  clearPendingOpportunity();
+  return pending;
+}
+
+function readPendingOpportunity() {
+  try {
+    const raw = sessionStorage.getItem(FALLBACK_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (error) {
+    return null;
+  }
+}
+
+function clearPendingOpportunity() {
+  try {
+    sessionStorage.removeItem(FALLBACK_KEY);
+  } catch (error) {
+    // ignore
+  }
+}
+
+function writeStorage(payload) {
+  try {
+    localStorage.setItem(STORAGE_KEY, payload);
+    return true;
+  } catch (error) {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, payload);
+      return true;
+    } catch (fallbackError) {
+      return false;
+    }
+  }
+}
+
+function readStorage() {
+  try {
+    const value = localStorage.getItem(STORAGE_KEY);
+    if (value) return value;
+  } catch (error) {
+    // ignore and try sessionStorage
+  }
+  try {
+    return sessionStorage.getItem(STORAGE_KEY);
+  } catch (fallbackError) {
+    return null;
   }
 }
 
@@ -657,6 +787,7 @@ function importProductsFromRows(rows) {
   const productIndex = findHeaderIndex(header, ["productos", "producto"]);
   const unitIndex = findHeaderIndex(header, ["unidades", "unidad", "uds"]);
   const priceIndex = findHeaderIndex(header, ["precio", "importe", "coste"]);
+  const dateIndex = findHeaderIndex(header, ["fecha", "date"]);
 
   if (productIndex === -1 || unitIndex === -1 || priceIndex === -1) {
     throw new Error("Faltan columnas requeridas");
@@ -665,11 +796,13 @@ function importProductsFromRows(rows) {
   const items = rows.slice(1).reduce((acc, row) => {
     const producto = (row[productIndex] || "").toString().trim();
     if (!producto) return acc;
+    const fecha = parseDateValue(dateIndex === -1 ? null : row[dateIndex]);
     const unidades = parseLocaleNumber(row[unitIndex]);
     const precio = parseLocaleNumber(row[priceIndex]);
     acc.push({
       id: createId("prod"),
       producto,
+      fecha,
       unidades,
       precio
     });
@@ -681,6 +814,7 @@ function importProductsFromRows(rows) {
   current.updatedAt = new Date().toISOString();
   saveState("Productos importados");
   renderProducts();
+  renderDetailsSummary();
 }
 
 function normalizeHeader(value) {
@@ -710,6 +844,58 @@ function parseLocaleNumber(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function parseDateValue(value) {
+  return normalizeDateValue(value);
+}
+
+function normalizeDateValue(value) {
+  if (!value) return null;
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+  if (typeof value === "number") {
+    return excelDateToIso(value);
+  }
+  const text = String(value).trim();
+  if (!text) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    return text;
+  }
+  const match = text.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (match) {
+    const day = Number.parseInt(match[1], 10);
+    const month = Number.parseInt(match[2], 10);
+    let year = Number.parseInt(match[3], 10);
+    if (year < 100) {
+      year += 2000;
+    }
+    const date = new Date(Date.UTC(year, month - 1, day));
+    if (!Number.isNaN(date.getTime())) {
+      return date.toISOString().slice(0, 10);
+    }
+  }
+  const parsed = new Date(text);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toISOString().slice(0, 10);
+  }
+  return null;
+}
+
+function excelDateToIso(serial) {
+  if (!Number.isFinite(serial)) return null;
+  const utc = Date.UTC(1899, 11, 30) + serial * 86400000;
+  const date = new Date(utc);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().slice(0, 10);
+}
+
+function toDateValue(value) {
+  if (!value) return 0;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 0;
+  return date.getTime();
+}
+
 function formatNumber(value) {
   if (value == null) return "-";
   return new Intl.NumberFormat("es-ES").format(value);
@@ -718,6 +904,31 @@ function formatNumber(value) {
 function formatCurrency(value) {
   if (value == null) return "-";
   return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(value);
+}
+
+function formatDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+function getLastAction(actions) {
+  if (!Array.isArray(actions) || actions.length === 0) return null;
+  const sorted = actions
+    .filter((action) => action.fecha)
+    .slice()
+    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  return sorted[0] || null;
+}
+
+function getSalespersonName(salespersonId) {
+  if (!salespersonId) return "Sin asignar";
+  const salesperson = state.salespeople.find((item) => item.id === salespersonId);
+  return salesperson ? salesperson.nombre : "Sin asignar";
 }
 
 function escapeHtml(value) {
