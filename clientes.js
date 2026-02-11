@@ -260,16 +260,23 @@ function getSalespersonName(salespersonId) {
 
 function loadState() {
   const raw = readStorage();
-  if (!raw) return structuredClone(DEFAULT_STATE);
+  if (!raw) return safeClone(DEFAULT_STATE);
   try {
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") {
-      return structuredClone(DEFAULT_STATE);
+      return safeClone(DEFAULT_STATE);
     }
     return normalizeState(parsed);
   } catch (error) {
-    return structuredClone(DEFAULT_STATE);
+    return safeClone(DEFAULT_STATE);
   }
+}
+
+function safeClone(value) {
+  if (typeof structuredClone === "function") {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
 }
 
 function readStorage() {

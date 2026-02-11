@@ -64,11 +64,11 @@ window.addEventListener("load", () => {
 render();
 
 backToClients.addEventListener("click", () => {
-  window.open("clientes-v2.html", "_self");
+  window.open("clientes.html", "_self");
 });
 
 backToClientsAlt.addEventListener("click", () => {
-  window.open("clientes-v2.html", "_self");
+  window.open("clientes.html", "_self");
 });
 
 backToPanel.addEventListener("click", () => {
@@ -594,15 +594,15 @@ function findOpportunity() {
 
 function loadState() {
   const raw = readStorage();
-  if (!raw) return structuredClone(DEFAULT_STATE);
+  if (!raw) return safeClone(DEFAULT_STATE);
   try {
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") {
-      return structuredClone(DEFAULT_STATE);
+      return safeClone(DEFAULT_STATE);
     }
     return normalizeState(parsed);
   } catch (error) {
-    return structuredClone(DEFAULT_STATE);
+    return safeClone(DEFAULT_STATE);
   }
 }
 
@@ -954,4 +954,11 @@ function createId(prefix) {
 function capitalize(value) {
   if (!value) return "";
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function safeClone(value) {
+  if (typeof structuredClone === "function") {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
 }

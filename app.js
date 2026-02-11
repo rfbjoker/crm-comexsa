@@ -176,7 +176,7 @@ openBackOffice.addEventListener("click", () => {
   window.open(`backoffice.html?v=${CACHE_BUSTER}`, "_blank", "noopener");
 });
 openClients.addEventListener("click", () => {
-  window.location.href = `clientes-v2.html?v=${CACHE_BUSTER}`;
+  window.location.href = `clientes.html?v=${CACHE_BUSTER}`;
 });
 
 window.addEventListener("storage", (event) => {
@@ -366,15 +366,15 @@ function saveState(message) {
 
 function loadState() {
   const raw = readStorage();
-  if (!raw) return structuredClone(DEFAULT_STATE);
+  if (!raw) return safeClone(DEFAULT_STATE);
   try {
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") {
-      return structuredClone(DEFAULT_STATE);
+      return safeClone(DEFAULT_STATE);
     }
     return normalizeState(parsed);
   } catch (error) {
-    return structuredClone(DEFAULT_STATE);
+    return safeClone(DEFAULT_STATE);
   }
 }
 
@@ -449,4 +449,11 @@ function createId(prefix) {
 function capitalize(value) {
   if (!value) return "";
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function safeClone(value) {
+  if (typeof structuredClone === "function") {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
 }
