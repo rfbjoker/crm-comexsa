@@ -299,7 +299,13 @@ function normalizeState(input) {
         ...opp,
         comercialId: opp.comercialId || "",
         etapa: normalizeStage(opp.etapa),
-        acciones: Array.isArray(opp.acciones) ? opp.acciones : []
+        acciones: Array.isArray(opp.acciones) ? opp.acciones : [],
+        cif: opp.cif || "",
+        nombreFiscal: opp.nombreFiscal || "",
+        direccionFiscal: opp.direccionFiscal || "",
+        direccionEntrega: opp.direccionEntrega || "",
+        poblacion: opp.poblacion || "",
+        provincia: opp.provincia || ""
       }))
     : [];
   const activities = Array.isArray(input.activities) ? input.activities : [];

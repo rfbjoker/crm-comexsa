@@ -523,7 +523,11 @@ function normalizeState(input) {
           : [],
         productos: Array.isArray(opp.productos) ? opp.productos : [],
         poblacion: opp.poblacion || "",
-        provincia: opp.provincia || ""
+        provincia: opp.provincia || "",
+        cif: opp.cif || "",
+        nombreFiscal: opp.nombreFiscal || "",
+        direccionFiscal: opp.direccionFiscal || "",
+        direccionEntrega: opp.direccionEntrega || ""
       }))
     : [];
   const activities = Array.isArray(input.activities) ? input.activities : [];

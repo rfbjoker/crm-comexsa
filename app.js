@@ -194,9 +194,15 @@ opportunityForm.addEventListener("submit", (event) => {
     id: createId("opp"),
     comercialId,
     empresa: formData.get("empresa").trim(),
+    nombreFiscal: "",
+    cif: "",
     contacto: formData.get("contacto").trim(),
     email: formData.get("email").trim(),
     telefono: formData.get("telefono").trim(),
+    direccionFiscal: "",
+    direccionEntrega: "",
+    poblacion: "",
+    provincia: "",
     monto: 0,
     etapa: "prospecto",
     prioridad: "media",
@@ -420,7 +426,13 @@ function normalizeState(input) {
         ...opp,
         comercialId: opp.comercialId || "",
         etapa: normalizeStage(opp.etapa),
-        acciones: Array.isArray(opp.acciones) ? opp.acciones : []
+        acciones: Array.isArray(opp.acciones) ? opp.acciones : [],
+        cif: opp.cif || "",
+        nombreFiscal: opp.nombreFiscal || "",
+        direccionFiscal: opp.direccionFiscal || "",
+        direccionEntrega: opp.direccionEntrega || "",
+        poblacion: opp.poblacion || "",
+        provincia: opp.provincia || ""
       }))
     : [];
   const activities = Array.isArray(input.activities) ? input.activities : [];

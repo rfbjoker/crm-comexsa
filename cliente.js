@@ -81,11 +81,15 @@ clientForm.addEventListener("input", () => {
   Object.assign(current, {
     comercialId: formData.get("comercialId"),
     empresa: formData.get("empresa").trim(),
+    nombreFiscal: formData.get("nombreFiscal").trim(),
+    cif: formData.get("cif").trim(),
     contacto: formData.get("contacto").trim(),
     email: formData.get("email").trim(),
     telefono: formData.get("telefono").trim(),
     poblacion: formData.get("poblacion").trim(),
     provincia: formData.get("provincia").trim(),
+    direccionFiscal: formData.get("direccionFiscal").trim(),
+    direccionEntrega: formData.get("direccionEntrega").trim(),
     etapa: formData.get("etapa"),
     notas: formData.get("notas").trim(),
     updatedAt: new Date().toISOString()
@@ -397,11 +401,15 @@ function renderSalesSelect() {
 function renderForm() {
   clientForm.comercialId.value = current.comercialId || "";
   clientForm.empresa.value = current.empresa || "";
+  clientForm.nombreFiscal.value = current.nombreFiscal || "";
+  clientForm.cif.value = current.cif || "";
   clientForm.contacto.value = current.contacto || "";
   clientForm.email.value = current.email || "";
   clientForm.telefono.value = current.telefono || "";
   clientForm.poblacion.value = current.poblacion || "";
   clientForm.provincia.value = current.provincia || "";
+  clientForm.direccionFiscal.value = current.direccionFiscal || "";
+  clientForm.direccionEntrega.value = current.direccionEntrega || "";
   clientForm.etapa.value = current.etapa || "prospecto";
   clientForm.notas.value = current.notas || "";
   if (!actionForm.fecha.value) {
@@ -676,7 +684,11 @@ function normalizeState(input) {
           : [],
         productos: Array.isArray(opp.productos) ? opp.productos : [],
         poblacion: opp.poblacion || "",
-        provincia: opp.provincia || ""
+        provincia: opp.provincia || "",
+        cif: opp.cif || "",
+        nombreFiscal: opp.nombreFiscal || "",
+        direccionFiscal: opp.direccionFiscal || "",
+        direccionEntrega: opp.direccionEntrega || ""
       }))
     : [];
   const activities = Array.isArray(input.activities) ? input.activities : [];
