@@ -157,7 +157,6 @@ const resetDemoButton = document.getElementById("resetDemo");
 let state = loadState();
 let editingSalespersonId = null;
 let backOfficeUnlocked = false;
-let valentineTimeoutId;
 
 window.addEventListener("load", () => {
   document.body.classList.add("loaded");
@@ -663,14 +662,9 @@ function safeClone(value) {
 function showValentineMessage() {
   if (!valentineOverlay) return;
   valentineOverlay.hidden = false;
-  clearTimeout(valentineTimeoutId);
-  valentineTimeoutId = setTimeout(() => {
-    hideValentineMessage();
-  }, 7000);
 }
 
 function hideValentineMessage() {
   if (!valentineOverlay) return;
   valentineOverlay.hidden = true;
-  clearTimeout(valentineTimeoutId);
 }

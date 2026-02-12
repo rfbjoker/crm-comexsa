@@ -770,6 +770,10 @@ textarea::placeholder {
   padding: 20px;
 }
 
+.valentine-overlay[hidden] {
+  display: none !important;
+}
+
 .valentine-card {
   position: relative;
   width: min(480px, 100%);
