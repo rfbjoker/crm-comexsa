@@ -144,7 +144,9 @@ const salesList = document.getElementById("salesList");
 const salesSubmit = document.getElementById("salesSubmit");
 const salesCancel = document.getElementById("salesCancel");
 const clientSearchBack = document.getElementById("clientSearchBack");
-const backClientList = document.getElementById("backClientList");
+const clientMatchBack = document.getElementById("clientMatchBack");
+const backClientInfo = document.getElementById("backClientInfo");
+const deleteClientBack = document.getElementById("deleteClientBack");
 
 const exportButton = document.getElementById("exportData");
 const importFile = document.getElementById("importFile");
@@ -224,6 +226,12 @@ clientSearchBack.addEventListener("input", () => {
   renderClientList();
 });
 
+if (clientMatchBack) {
+  clientMatchBack.addEventListener("change", () => {
+    renderSelectedClientInfo();
+  });
+}
+
 salesList.addEventListener("click", (event) => {
   const button = event.target.closest("button");
   if (!button) return;
@@ -260,21 +268,20 @@ salesList.addEventListener("click", (event) => {
   }
 });
 
-backClientList.addEventListener("click", (event) => {
-  const button = event.target.closest("button");
-  if (!button) return;
-  if (!ensureUnlocked()) return;
-  const action = button.dataset.action;
-  const clientId = button.dataset.id;
-  if (action !== "delete-client") return;
-  const client = state.opportunities.find((opp) => opp.id === clientId);
-  if (!client) return;
-  const ok = confirm(`¿Eliminar la empresa ${client.empresa}?`);
-  if (!ok) return;
-  state.opportunities = state.opportunities.filter((opp) => opp.id !== clientId);
-  saveState();
-  renderClientList();
-});
+if (deleteClientBack) {
+  deleteClientBack.addEventListener("click", () => {
+    const clientId = clientMatchBack?.value || "";
+    if (!clientId) return;
+    if (!ensureUnlocked()) return;
+    const client = state.opportunities.find((opp) => opp.id === clientId);
+    if (!client) return;
+    const ok = confirm(`¿Eliminar la empresa ${client.empresa}?`);
+    if (!ok) return;
+    state.opportunities = state.opportunities.filter((opp) => opp.id !== clientId);
+    saveState();
+    renderClientList();
+  });
+}
 
 exportButton.addEventListener("click", () => {
   if (!ensureUnlocked()) return;
@@ -349,6 +356,16 @@ function updateBackOfficeUI() {
   if (clientSearchBack) {
     clientSearchBack.value = "";
   }
+  if (clientMatchBack) {
+    clientMatchBack.innerHTML = "";
+    clientMatchBack.disabled = true;
+  }
+  if (deleteClientBack) {
+    deleteClientBack.disabled = true;
+  }
+  if (backClientInfo) {
+    backClientInfo.textContent = "";
+  }
 }
 
 function ensureUnlocked() {
@@ -403,48 +420,61 @@ function renderSalesList() {
 }
 
 function renderClientList() {
-  backClientList.innerHTML = "";
+  if (!clientMatchBack) return;
   if (!backOfficeUnlocked) return;
+  const selectedBefore = clientMatchBack.value;
   const query = clientSearchBack.value.trim().toLowerCase();
   const items = state.opportunities
     .filter((opp) => matchesClientQuery(opp, query))
     .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
 
+  clientMatchBack.innerHTML = "";
   if (items.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.textContent = "Aún no hay clientes registrados.";
-    backClientList.appendChild(empty);
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = query
+      ? "Sin coincidencias para la búsqueda"
+      : "Aún no hay clientes registrados";
+    clientMatchBack.appendChild(option);
+    clientMatchBack.disabled = true;
+    if (deleteClientBack) {
+      deleteClientBack.disabled = true;
+    }
+    if (backClientInfo) {
+      backClientInfo.textContent = "";
+    }
     return;
   }
 
   items.forEach((opp) => {
-    const stageLabel = getStageLabel(opp.etapa);
-    const row = document.createElement("div");
-    row.className = "client-row";
-    row.innerHTML = `
-      <div class="client-main">
-        <div class="client-title">
-          <span class="client-name">${opp.empresa}</span>
-          <span class="stage-pill" data-stage="${opp.etapa || "prospecto"}">${stageLabel}</span>
-        </div>
-        <div class="client-meta">
-          <span>${opp.contacto || "Sin contacto"}</span>
-          <span>${opp.email || "Sin email"}</span>
-          <span>${opp.telefono || "Sin teléfono"}</span>
-        </div>
-        <div class="client-meta">
-          <span>Comercial: ${getSalespersonName(opp.comercialId)}</span>
-        </div>
-      </div>
-      <div class="client-actions">
-        <button class="product-action" type="button" data-action="delete-client" data-id="${
-          opp.id
-        }">Eliminar</button>
-      </div>
-    `;
-    backClientList.appendChild(row);
+    const option = document.createElement("option");
+    option.value = opp.id;
+    option.textContent = `${opp.empresa} · ${opp.contacto || "Sin contacto"} · ${getStageLabel(
+      opp.etapa
+    )}`;
+    clientMatchBack.appendChild(option);
   });
+
+  const hasPrevious = items.some((item) => item.id === selectedBefore);
+  clientMatchBack.value = hasPrevious ? selectedBefore : items[0].id;
+  clientMatchBack.disabled = false;
+  if (deleteClientBack) {
+    deleteClientBack.disabled = false;
+  }
+  renderSelectedClientInfo();
+}
+
+function renderSelectedClientInfo() {
+  if (!backClientInfo) return;
+  const clientId = clientMatchBack?.value || "";
+  const client = state.opportunities.find((opp) => opp.id === clientId);
+  if (!client) {
+    backClientInfo.textContent = "";
+    return;
+  }
+  backClientInfo.textContent = `${client.empresa} · ${client.contacto || "Sin contacto"} · ${
+    client.email || "Sin email"
+  } · ${client.telefono || "Sin teléfono"} · Comercial: ${getSalespersonName(client.comercialId)}`;
 }
 
 function resetSalesForm() {
