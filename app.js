@@ -1,6 +1,6 @@
 const STORAGE_KEY = "crmcomexsa:v1";
 const FALLBACK_KEY = "crmcomexsa:pending";
-const CACHE_BUSTER = "20260211";
+const CACHE_BUSTER = "20260212";
 const STAGES = [
   { id: "prospecto", label: "Prospecto" },
   { id: "primeros-contactos", label: "Acción Comercial" },

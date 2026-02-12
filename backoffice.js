@@ -222,9 +222,11 @@ salesCancel.addEventListener("click", () => {
   renderSalesList();
 });
 
-clientSearchBack.addEventListener("input", () => {
-  renderClientList();
-});
+if (clientSearchBack) {
+  clientSearchBack.addEventListener("input", () => {
+    renderClientList();
+  });
+}
 
 if (clientMatchBack) {
   clientMatchBack.addEventListener("change", () => {
@@ -423,7 +425,7 @@ function renderClientList() {
   if (!clientMatchBack) return;
   if (!backOfficeUnlocked) return;
   const selectedBefore = clientMatchBack.value;
-  const queryText = clientSearchBack.value.trim();
+  const queryText = clientSearchBack ? clientSearchBack.value.trim() : "";
   const query = queryText.toLowerCase();
 
   if (!queryText) {
