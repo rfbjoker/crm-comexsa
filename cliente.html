@@ -143,6 +143,23 @@
                 <button class="btn ghost" id="actionCancel" type="button" hidden>Cancelar edición</button>
               </div>
             </form>
+            <div class="form-grid">
+              <label>
+                Filtrar por tipo
+                <select id="actionFilterType">
+                  <option value="all">Todos</option>
+                  <option value="llamada">Llamada</option>
+                  <option value="mail">Mail</option>
+                  <option value="visita">Visita</option>
+                  <option value="whatsapp">Whatsapp</option>
+                </select>
+              </label>
+              <label>
+                Buscar en acciones
+                <input id="actionSearch" type="text" placeholder="Buscar palabras clave" />
+              </label>
+            </div>
+            <div class="product-hint" id="actionHint"></div>
             <div id="actionEmpty" class="empty-state" hidden>Sin acciones registradas.</div>
             <div id="actionList" class="activity-list"></div>
           </section>

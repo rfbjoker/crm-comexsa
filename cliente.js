@@ -37,6 +37,9 @@ const clientSaveTime = document.getElementById("clientSaveTime");
 const actionForm = document.getElementById("actionForm");
 const actionSubmit = document.getElementById("actionSubmit");
 const actionCancel = document.getElementById("actionCancel");
+const actionFilterType = document.getElementById("actionFilterType");
+const actionSearch = document.getElementById("actionSearch");
+const actionHint = document.getElementById("actionHint");
 const actionList = document.getElementById("actionList");
 const actionEmpty = document.getElementById("actionEmpty");
 const productPanel = document.getElementById("productPanel");
@@ -181,6 +184,18 @@ actionList.addEventListener("change", (event) => {
 actionCancel.addEventListener("click", () => {
   resetActionForm();
 });
+
+if (actionFilterType) {
+  actionFilterType.addEventListener("change", () => {
+    renderActions();
+  });
+}
+
+if (actionSearch) {
+  actionSearch.addEventListener("input", () => {
+    renderActions();
+  });
+}
 
 productFile.addEventListener("change", (event) => {
   if (!current) return;
@@ -466,15 +481,47 @@ function renderActionSelect() {
 
 function renderActions() {
   const actions = Array.isArray(current.acciones) ? current.acciones : [];
+  const filterType = actionFilterType ? actionFilterType.value || "all" : "all";
+  const query = actionSearch ? actionSearch.value.trim().toLowerCase() : "";
+  const filtered = actions.filter((action) => {
+    if (filterType !== "all" && action.tipo !== filterType) {
+      return false;
+    }
+    if (!query) {
+      return true;
+    }
+    const haystack = [action.tipo, action.fecha, action.responsable, action.notas]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(query);
+  });
   actionList.innerHTML = "";
+
+  if (actionHint) {
+    if (actions.length === 0) {
+      actionHint.textContent = "";
+    } else if (filtered.length !== actions.length) {
+      actionHint.textContent = `Mostrando ${filtered.length} de ${actions.length} acciones.`;
+    } else {
+      actionHint.textContent = `Mostrando ${actions.length} acciones.`;
+    }
+  }
 
   if (actions.length === 0) {
     actionEmpty.hidden = false;
+    actionEmpty.textContent = "Sin acciones registradas.";
+    return;
+  }
+
+  if (filtered.length === 0) {
+    actionEmpty.hidden = false;
+    actionEmpty.textContent = "No hay acciones que coincidan con los filtros.";
     return;
   }
 
   actionEmpty.hidden = true;
-  actions.forEach((action) => {
+  filtered.forEach((action) => {
     const item = document.createElement("div");
     item.className = "activity-item";
     item.innerHTML = `
