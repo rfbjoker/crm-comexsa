@@ -423,26 +423,25 @@ function renderClientList() {
   if (!clientMatchBack) return;
   if (!backOfficeUnlocked) return;
   const selectedBefore = clientMatchBack.value;
-  const query = clientSearchBack.value.trim().toLowerCase();
+  const queryText = clientSearchBack.value.trim();
+  const query = queryText.toLowerCase();
+
+  if (!queryText) {
+    setClientSelectorState(
+      "",
+      "Escribe en el buscador para mostrar coincidencias",
+      true
+    );
+    return;
+  }
+
   const items = state.opportunities
     .filter((opp) => matchesClientQuery(opp, query))
     .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
 
   clientMatchBack.innerHTML = "";
   if (items.length === 0) {
-    const option = document.createElement("option");
-    option.value = "";
-    option.textContent = query
-      ? "Sin coincidencias para la búsqueda"
-      : "Aún no hay clientes registrados";
-    clientMatchBack.appendChild(option);
-    clientMatchBack.disabled = true;
-    if (deleteClientBack) {
-      deleteClientBack.disabled = true;
-    }
-    if (backClientInfo) {
-      backClientInfo.textContent = "";
-    }
+    setClientSelectorState("", "Sin coincidencias para la búsqueda", true);
     return;
   }
 
@@ -462,6 +461,22 @@ function renderClientList() {
     deleteClientBack.disabled = false;
   }
   renderSelectedClientInfo();
+}
+
+function setClientSelectorState(infoText, optionText, disabled) {
+  if (!clientMatchBack) return;
+  clientMatchBack.innerHTML = "";
+  const option = document.createElement("option");
+  option.value = "";
+  option.textContent = optionText;
+  clientMatchBack.appendChild(option);
+  clientMatchBack.disabled = disabled;
+  if (deleteClientBack) {
+    deleteClientBack.disabled = true;
+  }
+  if (backClientInfo) {
+    backClientInfo.textContent = infoText;
+  }
 }
 
 function renderSelectedClientInfo() {
