@@ -147,6 +147,8 @@ const clientSearchBack = document.getElementById("clientSearchBack");
 const clientMatchBack = document.getElementById("clientMatchBack");
 const backClientInfo = document.getElementById("backClientInfo");
 const deleteClientBack = document.getElementById("deleteClientBack");
+const valentineOverlay = document.getElementById("valentineOverlay");
+const valentineClose = document.getElementById("valentineClose");
 
 const exportButton = document.getElementById("exportData");
 const importFile = document.getElementById("importFile");
@@ -155,6 +157,7 @@ const resetDemoButton = document.getElementById("resetDemo");
 let state = loadState();
 let editingSalespersonId = null;
 let backOfficeUnlocked = false;
+let valentineTimeoutId;
 
 window.addEventListener("load", () => {
   document.body.classList.add("loaded");
@@ -174,6 +177,7 @@ backOfficeForm.addEventListener("submit", (event) => {
   const password = formData.get("password");
   if (password === BACKOFFICE_PASSWORD) {
     setBackOfficeUnlocked(true);
+    showValentineMessage();
     backOfficeForm.reset();
     return;
   }
@@ -182,7 +186,14 @@ backOfficeForm.addEventListener("submit", (event) => {
 
 backOfficeLock.addEventListener("click", () => {
   setBackOfficeUnlocked(false);
+  hideValentineMessage();
 });
+
+if (valentineClose) {
+  valentineClose.addEventListener("click", () => {
+    hideValentineMessage();
+  });
+}
 
 salesForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -647,4 +658,19 @@ function safeClone(value) {
     return structuredClone(value);
   }
   return JSON.parse(JSON.stringify(value));
+}
+
+function showValentineMessage() {
+  if (!valentineOverlay) return;
+  valentineOverlay.hidden = false;
+  clearTimeout(valentineTimeoutId);
+  valentineTimeoutId = setTimeout(() => {
+    hideValentineMessage();
+  }, 7000);
+}
+
+function hideValentineMessage() {
+  if (!valentineOverlay) return;
+  valentineOverlay.hidden = true;
+  clearTimeout(valentineTimeoutId);
 }
