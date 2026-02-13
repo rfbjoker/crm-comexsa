@@ -1,6 +1,6 @@
 const STORAGE_KEY = "crmcomexsa:v1";
 const FALLBACK_KEY = "crmcomexsa:pending";
-const CACHE_BUSTER = "20260214";
+const CACHE_BUSTER = "20260215";
 const STAGES = [
   { id: "prospecto", label: "Prospecto" },
   { id: "primeros-contactos", label: "Acción Comercial" },
@@ -194,6 +194,7 @@ opportunityForm.addEventListener("submit", (event) => {
     id: createId("opp"),
     comercialId,
     empresa: formData.get("empresa").trim(),
+    codigoCliente: "",
     nombreFiscal: "",
     cif: "",
     contacto: formData.get("contacto").trim(),
@@ -427,6 +428,7 @@ function normalizeState(input) {
         comercialId: opp.comercialId || "",
         etapa: normalizeStage(opp.etapa),
         acciones: Array.isArray(opp.acciones) ? opp.acciones : [],
+        codigoCliente: sanitizeClientCode(opp.codigoCliente || ""),
         cif: opp.cif || "",
         nombreFiscal: opp.nombreFiscal || "",
         direccionFiscal: opp.direccionFiscal || "",
@@ -468,4 +470,10 @@ function safeClone(value) {
     return structuredClone(value);
   }
   return JSON.parse(JSON.stringify(value));
+}
+
+function sanitizeClientCode(value) {
+  return String(value || "")
+    .replace(/\D/g, "")
+    .slice(0, 5);
 }

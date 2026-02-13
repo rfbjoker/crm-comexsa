@@ -147,8 +147,6 @@ const clientSearchBack = document.getElementById("clientSearchBack");
 const clientMatchBack = document.getElementById("clientMatchBack");
 const backClientInfo = document.getElementById("backClientInfo");
 const deleteClientBack = document.getElementById("deleteClientBack");
-const valentineOverlay = document.getElementById("valentineOverlay");
-const valentineClose = document.getElementById("valentineClose");
 
 const exportButton = document.getElementById("exportData");
 const importFile = document.getElementById("importFile");
@@ -176,7 +174,6 @@ backOfficeForm.addEventListener("submit", (event) => {
   const password = formData.get("password");
   if (password === BACKOFFICE_PASSWORD) {
     setBackOfficeUnlocked(true);
-    showValentineMessage();
     backOfficeForm.reset();
     return;
   }
@@ -185,14 +182,7 @@ backOfficeForm.addEventListener("submit", (event) => {
 
 backOfficeLock.addEventListener("click", () => {
   setBackOfficeUnlocked(false);
-  hideValentineMessage();
 });
-
-if (valentineClose) {
-  valentineClose.addEventListener("click", () => {
-    hideValentineMessage();
-  });
-}
 
 salesForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -499,9 +489,12 @@ function renderSelectedClientInfo() {
     backClientInfo.textContent = "";
     return;
   }
-  backClientInfo.textContent = `${client.empresa} · ${client.contacto || "Sin contacto"} · ${
-    client.email || "Sin email"
-  } · ${client.telefono || "Sin teléfono"} · Comercial: ${getSalespersonName(client.comercialId)}`;
+  const codeText = client.codigoCliente ? `Código: ${client.codigoCliente} · ` : "";
+  backClientInfo.textContent = `${codeText}${client.empresa} · ${
+    client.contacto || "Sin contacto"
+  } · ${client.email || "Sin email"} · ${client.telefono || "Sin teléfono"} · Comercial: ${getSalespersonName(
+    client.comercialId
+  )}`;
 }
 
 function resetSalesForm() {
@@ -581,6 +574,7 @@ function normalizeState(input) {
         productos: Array.isArray(opp.productos) ? opp.productos : [],
         poblacion: opp.poblacion || "",
         provincia: opp.provincia || "",
+        codigoCliente: sanitizeClientCode(opp.codigoCliente || ""),
         cif: opp.cif || "",
         nombreFiscal: opp.nombreFiscal || "",
         direccionFiscal: opp.direccionFiscal || "",
@@ -617,6 +611,7 @@ function matchesClientQuery(opp, query) {
   if (!query) return true;
   const salespersonName = getSalespersonName(opp.comercialId).toLowerCase();
   const haystack = [
+    opp.codigoCliente,
     opp.empresa,
     opp.contacto,
     opp.email,
@@ -659,12 +654,8 @@ function safeClone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function showValentineMessage() {
-  if (!valentineOverlay) return;
-  valentineOverlay.hidden = false;
-}
-
-function hideValentineMessage() {
-  if (!valentineOverlay) return;
-  valentineOverlay.hidden = true;
+function sanitizeClientCode(value) {
+  return String(value || "")
+    .replace(/\D/g, "")
+    .slice(0, 5);
 }

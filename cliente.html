@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Ficha de cliente · CRM Comexsa</title>
-    <link rel="stylesheet" href="styles.css?v=20260211" />
+    <link rel="stylesheet" href="styles.css?v=20260215" />
   </head>
   <body>
     <div class="backoffice-page">
@@ -49,6 +49,17 @@
               <label>
                 Empresa
                 <input name="empresa" type="text" required />
+              </label>
+              <label>
+                Código de cliente
+                <input
+                  name="codigoCliente"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="5"
+                  pattern="[0-9]{0,5}"
+                  placeholder="Ej. 12345"
+                />
               </label>
               <label>
                 Nombre fiscal
@@ -230,6 +241,6 @@
     </div>
 
     <script src="vendor/xlsx.full.min.js"></script>
-    <script src="cliente.js?v=20260211"></script>
+    <script src="cliente.js?v=20260215"></script>
   </body>
 </html>

@@ -81,9 +81,14 @@ backToPanel.addEventListener("click", () => {
 clientForm.addEventListener("input", () => {
   if (!current) return;
   const formData = new FormData(clientForm);
+  const codigoCliente = sanitizeClientCode(formData.get("codigoCliente"));
+  if (clientForm.codigoCliente && clientForm.codigoCliente.value !== codigoCliente) {
+    clientForm.codigoCliente.value = codigoCliente;
+  }
   Object.assign(current, {
     comercialId: formData.get("comercialId"),
     empresa: formData.get("empresa").trim(),
+    codigoCliente,
     nombreFiscal: formData.get("nombreFiscal").trim(),
     cif: formData.get("cif").trim(),
     contacto: formData.get("contacto").trim(),
@@ -416,6 +421,9 @@ function renderSalesSelect() {
 function renderForm() {
   clientForm.comercialId.value = current.comercialId || "";
   clientForm.empresa.value = current.empresa || "";
+  if (clientForm.codigoCliente) {
+    clientForm.codigoCliente.value = current.codigoCliente || "";
+  }
   clientForm.nombreFiscal.value = current.nombreFiscal || "";
   clientForm.cif.value = current.cif || "";
   clientForm.contacto.value = current.contacto || "";
@@ -732,6 +740,7 @@ function normalizeState(input) {
         productos: Array.isArray(opp.productos) ? opp.productos : [],
         poblacion: opp.poblacion || "",
         provincia: opp.provincia || "",
+        codigoCliente: sanitizeClientCode(opp.codigoCliente || ""),
         cif: opp.cif || "",
         nombreFiscal: opp.nombreFiscal || "",
         direccionFiscal: opp.direccionFiscal || "",
@@ -953,6 +962,12 @@ function toDateValue(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return 0;
   return date.getTime();
+}
+
+function sanitizeClientCode(value) {
+  return String(value || "")
+    .replace(/\D/g, "")
+    .slice(0, 5);
 }
 
 function formatNumber(value) {

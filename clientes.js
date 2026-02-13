@@ -235,6 +235,7 @@ function matchesQuery(opp, query) {
   if (!query) return true;
   const salespersonName = getSalespersonName(opp.comercialId).toLowerCase();
   const haystack = [
+    opp.codigoCliente,
     opp.empresa,
     opp.contacto,
     opp.email,
@@ -300,6 +301,7 @@ function normalizeState(input) {
         comercialId: opp.comercialId || "",
         etapa: normalizeStage(opp.etapa),
         acciones: Array.isArray(opp.acciones) ? opp.acciones : [],
+        codigoCliente: sanitizeClientCode(opp.codigoCliente || ""),
         cif: opp.cif || "",
         nombreFiscal: opp.nombreFiscal || "",
         direccionFiscal: opp.direccionFiscal || "",
@@ -366,4 +368,10 @@ function formatDate(value) {
     month: "short",
     year: "numeric"
   });
+}
+
+function sanitizeClientCode(value) {
+  return String(value || "")
+    .replace(/\D/g, "")
+    .slice(0, 5);
 }
